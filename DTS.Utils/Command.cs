@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DTS.Utils
 {
-    public class Class1
+    public class Command
     {
     }
 }
