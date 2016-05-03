@@ -8,6 +8,7 @@ namespace DTS.Utils
 {
     public class Command<T> : ICommand where T : class, new()
     {
+        private readonly CommandRunner _commandRunner;
         private readonly List<ArgDef> _argDefs;
         private Func<T, ReturnValue> _func;
         private readonly string _argChar;
@@ -15,8 +16,9 @@ namespace DTS.Utils
         private readonly string[] _falsy;
         public string Name { get; set; }
 
-        internal Command(string name)
+        internal Command(CommandRunner commandRunner, string name)
         {
+            _commandRunner = commandRunner;
             _argChar = "/";
             _truthy = new[] {"true", "t", "1"};
             _falsy = new[] {"false", "f", "0"};
@@ -153,6 +155,12 @@ namespace DTS.Utils
         public Command<T> NoOp(Func<T, ReturnValue> func)
         {
             _func = func;
+            return this;
+        }
+
+        public Command<T> Run(Func<T, RunDetails> func)
+        {
+            _func = (t) => _commandRunner.Run(func(t));
             return this;
         }
 

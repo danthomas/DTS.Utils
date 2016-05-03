@@ -99,9 +99,7 @@ namespace DTS.Utils.Tests
 
     internal class TestCommandRunner : CommandRunner
     {
-        private Queue<string> _lines;
-
-        public TestCommandRunner()
+        public TestCommandRunner() : base(null)
         {
             Command<Command1Args>("command1")
                 .Arg("s", x => x.String)

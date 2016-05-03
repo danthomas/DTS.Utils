@@ -7,16 +7,18 @@ namespace DTS.Utils
 {
    public class CommandRunner
     {
-        private readonly List<ICommand> _commands;
+       private readonly IRunner _runner;
+       private readonly List<ICommand> _commands;
 
-        public CommandRunner()
+        public CommandRunner(IRunner runner)
         {
+            _runner = runner;
             _commands = new List<ICommand>();
         }
 
-        protected Command<T> Command<T>(string name) where T : class, new()
+       protected Command<T> Command<T>(string name) where T : class, new()
         {
-            Command<T> command = new Command<T>(name);
+            Command<T> command = new Command<T>(this, name);
 
             _commands.Add(command);
 
@@ -36,5 +38,10 @@ namespace DTS.Utils
 
             return command.Execute(parts.Skip(1).ToArray());
         }
+
+       public ReturnValue Run(RunDetails runDetails)
+       {
+           return _runner.Run(runDetails);
+       }
     }
 }

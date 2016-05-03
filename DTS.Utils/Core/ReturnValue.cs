@@ -4,7 +4,7 @@ namespace DTS.Utils.Core
 {
     public class ReturnValue
     {
-        private ReturnValue(bool isSuccess, string format, params object[] args)
+        protected ReturnValue(bool isSuccess, string format, params object[] args)
         {
             IsSuccess = isSuccess;
             Message = String.Format(format, args);
@@ -21,6 +21,14 @@ namespace DTS.Utils.Core
         public static ReturnValue Error(string format, params object[] args)
         {
             return new ReturnValue(false, format, args);
+        }
+    }
+
+    public class RunRuturnValue : ReturnValue
+    {
+        public RunRuturnValue(bool isSuccess, string format, params object[] args) 
+            : base(isSuccess, format, args)
+        {
         }
     }
 }
