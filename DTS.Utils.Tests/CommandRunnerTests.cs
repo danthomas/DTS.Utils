@@ -7,12 +7,12 @@ namespace DTS.Utils.Tests
 {
     public class CommandRunnerTests
     {
-        private TestCommandRunner _testCommandRunner;
+        private TestUtilBase _testUtilBase;
 
         [SetUp]
         public void SetUp()
         {
-            _testCommandRunner = new TestCommandRunner();
+            _testUtilBase = new TestUtilBase();
         }
 
         [Test]
@@ -21,12 +21,12 @@ namespace DTS.Utils.Tests
         [TestCase("command1 cde /i 789 /b true ", "cde", true, 789)]//positional && named
         public void PositionalAndNamed(string line, string s, bool b, int i)
         {
-            var returnValue = _testCommandRunner.Execute(line);
+            var returnValue = _testUtilBase.Execute(line);
 
             Assert.That(returnValue.IsSuccess);
-            Assert.That(_testCommandRunner.Command1Args.String, Is.EqualTo(s));
-            Assert.That(_testCommandRunner.Command1Args.Bool, Is.EqualTo(b));
-            Assert.That(_testCommandRunner.Command1Args.Int32, Is.EqualTo(i));
+            Assert.That(_testUtilBase.Command1Args.String, Is.EqualTo(s));
+            Assert.That(_testUtilBase.Command1Args.Bool, Is.EqualTo(b));
+            Assert.That(_testUtilBase.Command1Args.Int32, Is.EqualTo(i));
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace DTS.Utils.Tests
         [TestCase("command2 /i 999", "Required arguments not set: /s, /b")]
         public void RequiredArgumentsNotSet(string line, string message)
         {
-            var returnValue = _testCommandRunner.Execute(line);
+            var returnValue = _testUtilBase.Execute(line);
 
             Assert.That(returnValue.IsSuccess, Is.False);
             Assert.That(returnValue.Message, Is.EqualTo(message));
@@ -53,10 +53,10 @@ namespace DTS.Utils.Tests
         [TestCase("command1 /b 0", false)]
         public void ValidBoolArgs(string line, bool expected)
         {
-            var returnValue = _testCommandRunner.Execute(line);
+            var returnValue = _testUtilBase.Execute(line);
 
             Assert.That(returnValue.IsSuccess, Is.True);
-            Assert.That(_testCommandRunner.Command1Args.Bool, Is.EqualTo(expected));
+            Assert.That(_testUtilBase.Command1Args.Bool, Is.EqualTo(expected));
         }
 
         [Test]
@@ -64,7 +64,7 @@ namespace DTS.Utils.Tests
         [TestCase("command1 /b 2", "Invalid arguments : /b = 2")]
         public void InvalidBoolArgs(string line, string message)
         {
-            var returnValue = _testCommandRunner.Execute(line);
+            var returnValue = _testUtilBase.Execute(line);
 
             Assert.That(returnValue.IsSuccess, Is.False);
             Assert.That(returnValue.Message, Is.EqualTo(message));
@@ -78,10 +78,10 @@ namespace DTS.Utils.Tests
         [TestCase("command1 /i -2147483648", Int32.MinValue)]
         public void ValidInt32Args(string line, int expected)
         {
-            var returnValue = _testCommandRunner.Execute(line);
+            var returnValue = _testUtilBase.Execute(line);
 
             Assert.That(returnValue.IsSuccess, Is.True);
-            Assert.That(_testCommandRunner.Command1Args.Int32, Is.EqualTo(expected));
+            Assert.That(_testUtilBase.Command1Args.Int32, Is.EqualTo(expected));
         }
 
         [Test]
@@ -90,16 +90,16 @@ namespace DTS.Utils.Tests
         [TestCase("command1 /i -2147483649", "Invalid arguments : /i = -2147483649")]
         public void InvalidInt32Args(string line, string message)
         {
-            var returnValue = _testCommandRunner.Execute(line);
+            var returnValue = _testUtilBase.Execute(line);
 
             Assert.That(returnValue.IsSuccess, Is.False);
             Assert.That(returnValue.Message, Is.EqualTo(message));
         }
     }
 
-    internal class TestCommandRunner : CommandRunner
+    internal class TestUtilBase : UtilBase
     {
-        public TestCommandRunner() : base(null)
+        public TestUtilBase() : base(null, null)
         {
             Command<Command1Args, Action>()
                 .Action(Action.Command1, "")

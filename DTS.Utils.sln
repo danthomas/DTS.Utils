@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTS.Utils", "DTS.Utils\DTS.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTS.Utils.Tests", "DTS.Utils.Tests\DTS.Utils.Tests.csproj", "{9C7EF61C-134B-404C-AC83-E9A622B8612F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTS.Cli", "DTS.Cli\DTS.Cli.csproj", "{67B63040-B4AD-4747-9213-1CAAC129B442}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{9C7EF61C-134B-404C-AC83-E9A622B8612F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C7EF61C-134B-404C-AC83-E9A622B8612F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C7EF61C-134B-404C-AC83-E9A622B8612F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67B63040-B4AD-4747-9213-1CAAC129B442}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67B63040-B4AD-4747-9213-1CAAC129B442}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67B63040-B4AD-4747-9213-1CAAC129B442}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67B63040-B4AD-4747-9213-1CAAC129B442}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

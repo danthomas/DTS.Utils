@@ -1,46 +1,133 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using DTS.Utils.Core;
 
 namespace DTS.Utils.WindowsServices
 {
-    public class Util : CommandRunner
+    public class Util : UtilBase
     {
         private string _server;
 
-        public Util(IRunner runner) 
-            : base(runner)
+        public Util(IProcessRunner processRunner)
+            : base("svc", processRunner)
         {
             Command<SessionArgs, Action>()
                 .Action(Action.Server, "Sets the server for the current session")
                 .Arg("n", x => x.Server)
-                .NoOp((x, a) =>
-                {
-                    _server = x.Server;
-                    return ReturnValue.Ok();
-                });
+                .NoOp(SetServer);
+
+            Command<ListArgs, Action>()
+                .Action(Action.List, "Lists the services filtered by name")
+                .Arg("n", x => x.Name)
+                .Run(GetListRunProcessDetails, ProcessListOutput);
 
             Command<StateArgs, Action>()
-                .Action(Action.State, "Gets the state of the specified service")
+                .Action(Action.State, "Gets the action of the specified service")
                 .Action(Action.Start, "Starts the specified service")
                 .Action(Action.Stop, "Stops the specified service")
                 .Arg("n", x => x.Service)
                 .Arg("s", x => x.Server)
-                .Run((x, a) => new RunDetails
-                {
-                    Exe = "sc.exe",
-                    Args = GetArgs(x, a)
-                });
+                .Run(GetStateStopStartRunProcessDetails, ProcessStateStopStartOutput);
         }
 
-        private string GetArgs(StateArgs x, Action state)
+        private ReturnValue SetServer(SessionArgs args, Action action)
         {
-            string server = String.IsNullOrWhiteSpace(x.Server) ?_server  : x.Server;
+            _server = args.Server;
+            return ReturnValue.Ok();
+        }
+
+        private RunProcessDetails GetListRunProcessDetails(ListArgs listArgs, Action action)
+        {
+            return new RunProcessDetails
+            {
+                Exe = "sc.exe",
+                Args = "query state= all"
+            };
+        }
+
+        private ReturnValue ProcessListOutput(ListArgs listArgs, Action action, string output)
+        {
+            var message = string.Join(Environment.NewLine,
+                            output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+                                .Where(x => x.StartsWith("SERVICE_NAME: "))
+                                .Select(x => x.Replace("SERVICE_NAME: ", ""))
+                                .Where(x => String.IsNullOrWhiteSpace(listArgs.Name) || x.ToLower().Contains(listArgs.Name.ToLower())));
+
+            return ReturnValue.Ok(message);
+        }
+
+        private RunProcessDetails GetStateStopStartRunProcessDetails(StateArgs stateArgs, Action action)
+        {
+            return new RunProcessDetails
+            {
+                Exe = "sc.exe",
+                Args = GetArgs(stateArgs, action)
+            };
+        }
+
+        private ReturnValue ProcessStateStopStartOutput(StateArgs stateArgs, Action action, string output)
+        {
+            string state = GetTrimmedLines(output)
+                .Where(x => x.StartsWith("STATE"))
+                .Select(x => x.EverythingAfterLast(" "))
+                .FirstOrDefault();
+
+            ReturnValue returnValue = ReturnValue.Ok();
+
+            if (action == Action.Start)
+            {
+                returnValue = CheckOutputForErrors(output, 1056);
+            }
+            else if (action == Action.Stop)
+            {
+                returnValue = CheckOutputForErrors(output, 1062);
+            }
+            else if (action == Action.State && state == null)
+            {
+                returnValue = ReturnValue.Error("Failed to find the action");
+            }
+
+            return returnValue.IsSuccess
+                ? ReturnValue.Ok(state) 
+                : returnValue;
+        }
+
+        private static IList<string> GetTrimmedLines(string output)
+        {
+            return output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .ToList();
+        }
+
+        private ReturnValue CheckOutputForErrors(string output, int errorCode)
+        {
+            var lines = GetTrimmedLines(output);
+
+            if (lines.Count > 0 && lines[0].Contains(errorCode.ToString()))
+            {
+                var errorMessage = lines.Skip(1).FirstOrDefault() ?? "Unknown error";
+
+                return ReturnValue.Error(errorMessage);
+            }
+
+            return ReturnValue.Ok();
+        }
+
+        private string GetArgs(StateArgs x, Action action)
+        {
+            string server = String.IsNullOrWhiteSpace(x.Server) ? _server : x.Server;
 
             string ret = String.IsNullOrWhiteSpace(server) ? "" : "//" + server + " ";
 
-            ret += $"{(state == Action.State ? "query" : state.ToString().ToLower())} {x.Service}";
+            ret += $"{(action == Action.State ? "query" : action.ToString().ToLower())} {x.Service}";
 
             return ret;
+        }
+
+        class ListArgs
+        {
+            public string Name { get; set; }
         }
 
         class SessionArgs
@@ -59,7 +146,8 @@ namespace DTS.Utils.WindowsServices
             State,
             Stop,
             Start,
-            Server
+            Server,
+            List
         }
     }
 }

@@ -7,58 +7,40 @@ namespace DTS.Utils.Tests.WindowsServices
     public class UtilTests
     {
         private Util _util;
-        private IRunner _runner;
+        private IProcessRunner _processRunner;
 
 
         [SetUp]
         public void SetUp()
         {
-            _runner = Substitute.For<IRunner>();
-            _util = new Util(_runner);
+            _processRunner = Substitute.For<IProcessRunner>();
+            _util = new Util(_processRunner);
         }
 
         [Test]
-        public void State()
+        [TestCase("state service", "query service", "server Server", "//Server query service")]
+        [TestCase("stop service", "stop service", "server Server", "//Server stop service")]
+        [TestCase("start service", "start service", "server Server", "//Server start service")]
+        public void StateStartStop(string line, string noServerArgs, string serverLine, string serverArgs)
         {
-            RunDetails runDetails = null;
+            string exe = "sc.exe";
+            RunProcessDetails runProcessDetails = null;
 
-            _runner.Run(Arg.Do<RunDetails>(x => runDetails = x));
+            _processRunner.Run(Arg.Do<RunProcessDetails>(x => runProcessDetails = x));
 
-            var returnValue = _util.Execute("state service");
+            var returnValue = _util.Execute(line);
 
-            Assert.That(runDetails.Exe, Is.EqualTo("sc.exe"));
-            Assert.That(runDetails.Args, Is.EqualTo("query service"));
+            Assert.That(runProcessDetails.Exe, Is.EqualTo(exe));
+            Assert.That(runProcessDetails.Args, Is.EqualTo(noServerArgs));
 
-            returnValue = _util.Execute("server Server");
-
+            returnValue = _util.Execute(serverLine);
+            
             Assert.That(returnValue.IsSuccess, Is.True);
-
-            returnValue = _util.Execute("state service");
-
-            Assert.That(runDetails.Exe, Is.EqualTo("sc.exe"));
-            Assert.That(runDetails.Args, Is.EqualTo("//Server query service"));
-        }
-
-        [Test]
-        public void Stop()
-        {
-            RunDetails runDetails = null;
-
-            _runner.Run(Arg.Do<RunDetails>(x => runDetails = x));
-
-            var returnValue = _util.Execute("stop service");
-
-            Assert.That(runDetails.Exe, Is.EqualTo("sc.exe"));
-            Assert.That(runDetails.Args, Is.EqualTo("stop service"));
-
-            returnValue = _util.Execute("server Server");
-
-            Assert.That(returnValue.IsSuccess, Is.True);
-
-            returnValue = _util.Execute("stop service");
-
-            Assert.That(runDetails.Exe, Is.EqualTo("sc.exe"));
-            Assert.That(runDetails.Args, Is.EqualTo("//Server stop service"));
+            
+            returnValue = _util.Execute(line);
+            
+            Assert.That(runProcessDetails.Exe, Is.EqualTo(exe));
+            Assert.That(runProcessDetails.Args, Is.EqualTo(serverArgs));
         }
     }
 }

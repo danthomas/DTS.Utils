@@ -8,16 +8,16 @@ namespace DTS.Utils
 {
     public class Command<T, A> : ICommand where T : class, new()
     {
-        private readonly CommandRunner _commandRunner;
+        private readonly UtilBase _utilBase;
         private readonly List<ArgDef> _argDefs;
         private Func<T, A, ReturnValue> _func;
         private readonly string _argChar;
         private readonly string[] _truthy;
         private readonly string[] _falsy;
 
-        internal Command(CommandRunner commandRunner)
+        internal Command(UtilBase utilBase)
         {
-            _commandRunner = commandRunner;
+            _utilBase = utilBase;
             _argChar = "/";
             _truthy = new[] { "true", "t", "1" };
             _falsy = new[] { "false", "f", "0" };
@@ -174,9 +174,14 @@ namespace DTS.Utils
             return this;
         }
 
-        public Command<T, A> Run(Func<T, A, RunDetails> func)
+        public Command<T, A> Run(Func<T, A, RunProcessDetails> func, Func<T, A, string, ReturnValue> processOutput)
         {
-            _func = (t, a) => _commandRunner.Run(func(t, a));
+            _func = (t, a) =>
+            {
+                var returnValue = _utilBase.RunProcess(func(t, a));
+
+                return processOutput(t, a, returnValue.Message);
+            };
             return this;
         }
 
