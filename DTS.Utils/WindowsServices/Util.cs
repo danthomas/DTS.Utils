@@ -10,7 +10,8 @@ namespace DTS.Utils.WindowsServices
         public Util(IRunner runner) 
             : base(runner)
         {
-            Command<SessionArgs, Action>(Action.Server)
+            Command<SessionArgs, Action>()
+                .Action(Action.Server, "Sets the server for the current session")
                 .Arg("n", x => x.Server)
                 .NoOp((x, a) =>
                 {
@@ -18,7 +19,10 @@ namespace DTS.Utils.WindowsServices
                     return ReturnValue.Ok();
                 });
 
-            Command<StateArgs, Action>(Action.State, Action.Stop, Action.Start)
+            Command<StateArgs, Action>()
+                .Action(Action.State, "Gets the state of the specified service")
+                .Action(Action.Start, "Starts the specified service")
+                .Action(Action.Stop, "Stops the specified service")
                 .Arg("n", x => x.Service)
                 .Arg("s", x => x.Server)
                 .Run((x, a) => new RunDetails

@@ -16,9 +16,9 @@ namespace DTS.Utils
             _commands = new List<ICommand>();
         }
 
-        protected Command<T, A> Command<T, A>(params A[] actions) where T : class, new()
+        protected Command<T, A> Command<T, A>() where T : class, new()
         {
-            Command<T, A> command = new Command<T, A>(this, actions);
+            Command<T, A> command = new Command<T, A>(this);
 
             _commands.Add(command);
 

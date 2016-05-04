@@ -14,22 +14,28 @@ namespace DTS.Utils
         private readonly string _argChar;
         private readonly string[] _truthy;
         private readonly string[] _falsy;
-        
-        internal Command(CommandRunner commandRunner, A[] actions)
+
+        internal Command(CommandRunner commandRunner)
         {
             _commandRunner = commandRunner;
             _argChar = "/";
-            _truthy = new[] {"true", "t", "1"};
-            _falsy = new[] {"false", "f", "0"};
+            _truthy = new[] { "true", "t", "1" };
+            _falsy = new[] { "false", "f", "0" };
 
             _argDefs = new List<ArgDef>();
-            Names = actions.Select(x => x.ToString().ToLower()).ToArray();
-            Actions = actions;
+            Actions = new List<ActionDef>();
         }
 
-        public A[] Actions { get; set; }
+        private List<ActionDef> Actions { get; set; }
 
         public string[] Names { get; set; }
+
+        public Command<T, A> Action(A action, string description)
+        {
+            Actions.Add(new ActionDef(action, description));
+            Names = Actions.Select(x => x.Action.ToString().ToLower()).ToArray();
+            return this;
+        }
 
         public Command<T, A> Arg<P>(string name, Expression<Func<T, P>> expression, bool required = false)
         {
@@ -135,7 +141,7 @@ namespace DTS.Utils
                 return ReturnValue.Error(
                     $@"Required arguments not set: {String.Join(", ", requiredArgsWithNoValue.Select(x => x.Name))}");
             }
-            
+
             var invalidArgs = _argDefs.Where(x => x.State == State.Invalid).ToArray();
 
             if (invalidArgs.Any())
@@ -206,6 +212,20 @@ namespace DTS.Utils
             NotSet,
             Set,
             Invalid
+        }
+
+        private class ActionDef
+        {
+            public ActionDef(A action, string description)
+            {
+                Action = action;
+                Name = action.ToString().ToLower();
+                Description = description;
+            }
+
+            public A Action { get; set; }
+            public string Name { get; set; }
+            public string Description { get; set; }
         }
     }
 }
