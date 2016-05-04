@@ -101,21 +101,21 @@ namespace DTS.Utils.Tests
     {
         public TestCommandRunner() : base(null)
         {
-            Command<Command1Args>("command1")
+            Command<Command1Args, Action>(Action.Command1)
                 .Arg("s", x => x.String)
                 .Arg("b", x => x.Bool)
                 .Arg("i", x => x.Int32)
-                .NoOp(args =>
+                .NoOp((args, a) =>
                 {
                     Command1Args = args;
                     return ReturnValue.Ok();
                 });
 
-            Command<Command2Args>("command2")
+            Command<Command2Args, Action>(Action.Command2)
                 .Arg("s", x => x.String, true)
                 .Arg("b", x => x.Bool, true)
                 .Arg("i", x => x.Int32)
-                .NoOp(args =>
+                .NoOp((args, a) =>
                 {
                     Command2Args = args;
                     return ReturnValue.Ok();
@@ -125,6 +125,12 @@ namespace DTS.Utils.Tests
         public Command2Args Command2Args { get; set; }
 
         public Command1Args Command1Args { get; set; }
+
+        public enum Action
+        {
+            Command1,
+            Command2
+        };
     }
 
     internal class Command2Args

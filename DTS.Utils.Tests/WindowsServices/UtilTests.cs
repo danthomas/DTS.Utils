@@ -1,5 +1,4 @@
-﻿using DTS.Utils.Core;
-using DTS.Utils.WindowsServices;
+﻿using DTS.Utils.WindowsServices;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -14,25 +13,52 @@ namespace DTS.Utils.Tests.WindowsServices
         [SetUp]
         public void SetUp()
         {
-            _runner = NSubstitute.Substitute.For<IRunner>();
+            _runner = Substitute.For<IRunner>();
             _util = new Util(_runner);
         }
 
         [Test]
-        public void Test()
+        public void State()
         {
             RunDetails runDetails = null;
 
             _runner.Run(Arg.Do<RunDetails>(x => runDetails = x));
 
-            var returnValue = _util.Execute("server Server");
+            var returnValue = _util.Execute("state service");
+
+            Assert.That(runDetails.Exe, Is.EqualTo("sc.exe"));
+            Assert.That(runDetails.Args, Is.EqualTo("query service"));
+
+            returnValue = _util.Execute("server Server");
 
             Assert.That(returnValue.IsSuccess, Is.True);
 
             returnValue = _util.Execute("state service");
-            
-            Assert.That(runDetails.Exe, Is.EqualTo( "sc.exe"));
-            Assert.That(runDetails.Args, Is.EqualTo( "//Server service"));
+
+            Assert.That(runDetails.Exe, Is.EqualTo("sc.exe"));
+            Assert.That(runDetails.Args, Is.EqualTo("//Server query service"));
+        }
+
+        [Test]
+        public void Stop()
+        {
+            RunDetails runDetails = null;
+
+            _runner.Run(Arg.Do<RunDetails>(x => runDetails = x));
+
+            var returnValue = _util.Execute("stop service");
+
+            Assert.That(runDetails.Exe, Is.EqualTo("sc.exe"));
+            Assert.That(runDetails.Args, Is.EqualTo("stop service"));
+
+            returnValue = _util.Execute("server Server");
+
+            Assert.That(returnValue.IsSuccess, Is.True);
+
+            returnValue = _util.Execute("stop service");
+
+            Assert.That(runDetails.Exe, Is.EqualTo("sc.exe"));
+            Assert.That(runDetails.Args, Is.EqualTo("//Server stop service"));
         }
     }
 }

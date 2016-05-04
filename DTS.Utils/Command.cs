@@ -6,17 +6,16 @@ using DTS.Utils.Core;
 
 namespace DTS.Utils
 {
-    public class Command<T> : ICommand where T : class, new()
+    public class Command<T, A> : ICommand where T : class, new()
     {
         private readonly CommandRunner _commandRunner;
         private readonly List<ArgDef> _argDefs;
-        private Func<T, ReturnValue> _func;
+        private Func<T, A, ReturnValue> _func;
         private readonly string _argChar;
         private readonly string[] _truthy;
         private readonly string[] _falsy;
-        public string Name { get; set; }
-
-        internal Command(CommandRunner commandRunner, string name)
+        
+        internal Command(CommandRunner commandRunner, A[] actions)
         {
             _commandRunner = commandRunner;
             _argChar = "/";
@@ -24,10 +23,15 @@ namespace DTS.Utils
             _falsy = new[] {"false", "f", "0"};
 
             _argDefs = new List<ArgDef>();
-            Name = name;
+            Names = actions.Select(x => x.ToString().ToLower()).ToArray();
+            Actions = actions;
         }
 
-        public Command<T> Arg<P>(string name, Expression<Func<T, P>> expression, bool required = false)
+        public A[] Actions { get; set; }
+
+        public string[] Names { get; set; }
+
+        public Command<T, A> Arg<P>(string name, Expression<Func<T, P>> expression, bool required = false)
         {
             var member = ((MemberExpression)expression.Body).Member;
 
@@ -61,7 +65,7 @@ namespace DTS.Utils
                 }
                 else
                 {
-                    throw new Exception($"Unsupported Type {type.FullName}");
+                    throw new Exception($@"Unsupported Type {type.FullName}");
                 }
             }
 
@@ -74,6 +78,8 @@ namespace DTS.Utils
 
         public ReturnValue Execute(string[] args)
         {
+            A action = (A)Enum.Parse(typeof(A), args[0], true);
+
             T t = new T();
 
             _argDefs.ForEach(x =>
@@ -83,6 +89,8 @@ namespace DTS.Utils
             });
 
             bool positional = true;
+
+            args = args.Skip(1).ToArray();
 
             for (int i = 0; i < args.Length;)
             {
@@ -124,17 +132,19 @@ namespace DTS.Utils
 
             if (requiredArgsWithNoValue.Any())
             {
-                return ReturnValue.Error($@"Required arguments not set: {String.Join(", ", requiredArgsWithNoValue.Select(x => x.Name))}");
+                return ReturnValue.Error(
+                    $@"Required arguments not set: {String.Join(", ", requiredArgsWithNoValue.Select(x => x.Name))}");
             }
             
             var invalidArgs = _argDefs.Where(x => x.State == State.Invalid).ToArray();
 
             if (invalidArgs.Any())
             {
-                return ReturnValue.Error($@"Invalid arguments : {String.Join(", ", invalidArgs.Select(x => $"{x.Name} = {x.Value}"))}");
+                return ReturnValue.Error(
+                    $@"Invalid arguments : {String.Join(", ", invalidArgs.Select(x => $"{x.Name} = {x.Value}"))}");
             }
 
-            return _func(t);
+            return _func(t, action);
         }
 
         private string GetBoolValue(string value)
@@ -152,15 +162,15 @@ namespace DTS.Utils
             return ret;
         }
 
-        public Command<T> NoOp(Func<T, ReturnValue> func)
+        public Command<T, A> NoOp(Func<T, A, ReturnValue> func)
         {
             _func = func;
             return this;
         }
 
-        public Command<T> Run(Func<T, RunDetails> func)
+        public Command<T, A> Run(Func<T, A, RunDetails> func)
         {
-            _func = (t) => _commandRunner.Run(func(t));
+            _func = (t, a) => _commandRunner.Run(func(t, a));
             return this;
         }
 

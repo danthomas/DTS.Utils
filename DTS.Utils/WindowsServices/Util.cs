@@ -10,31 +10,31 @@ namespace DTS.Utils.WindowsServices
         public Util(IRunner runner) 
             : base(runner)
         {
-            Command<SessionArgs>("server")
+            Command<SessionArgs, Action>(Action.Server)
                 .Arg("n", x => x.Server)
-                .NoOp(x =>
+                .NoOp((x, a) =>
                 {
                     _server = x.Server;
                     return ReturnValue.Ok();
                 });
 
-            Command<StateArgs>("state")
+            Command<StateArgs, Action>(Action.State, Action.Stop, Action.Start)
                 .Arg("n", x => x.Service)
                 .Arg("s", x => x.Server)
-                .Run(x => new RunDetails
+                .Run((x, a) => new RunDetails
                 {
                     Exe = "sc.exe",
-                    Args = GetStateArgs(x)
+                    Args = GetArgs(x, a)
                 });
         }
 
-        private string GetStateArgs(StateArgs x)
+        private string GetArgs(StateArgs x, Action state)
         {
             string server = String.IsNullOrWhiteSpace(x.Server) ?_server  : x.Server;
 
             string ret = String.IsNullOrWhiteSpace(server) ? "" : "//" + server + " ";
 
-            ret += x.Service;
+            ret += $"{(state == Action.State ? "query" : state.ToString().ToLower())} {x.Service}";
 
             return ret;
         }
@@ -48,6 +48,14 @@ namespace DTS.Utils.WindowsServices
         {
             public string Server { get; set; }
             public string Service { get; set; }
+        }
+
+        enum Action
+        {
+            State,
+            Stop,
+            Start,
+            Server
         }
     }
 }

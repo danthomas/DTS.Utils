@@ -2,7 +2,7 @@
 {
     public interface ICommand
     {
-        string Name { get; set; }
+        string[] Names { get; set; }
 
         ReturnValue Execute(string[] args);
     }

@@ -5,10 +5,10 @@ using DTS.Utils.Core;
 
 namespace DTS.Utils
 {
-   public class CommandRunner
+    public class CommandRunner
     {
-       private readonly IRunner _runner;
-       private readonly List<ICommand> _commands;
+        private readonly IRunner _runner;
+        private readonly List<ICommand> _commands;
 
         public CommandRunner(IRunner runner)
         {
@@ -16,9 +16,9 @@ namespace DTS.Utils
             _commands = new List<ICommand>();
         }
 
-       protected Command<T> Command<T>(string name) where T : class, new()
+        protected Command<T, A> Command<T, A>(params A[] actions) where T : class, new()
         {
-            Command<T> command = new Command<T>(this, name);
+            Command<T, A> command = new Command<T, A>(this, actions);
 
             _commands.Add(command);
 
@@ -29,19 +29,19 @@ namespace DTS.Utils
         {
             string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            var command = _commands.SingleOrDefault(x => x.Name == parts[0]);
+            var command = _commands.SingleOrDefault(x => x.Names.Contains(parts[0].ToLower()));
 
             if (command == null)
             {
-                return ReturnValue.Error($@"Command {parts[0]} not recognised");
+                return ReturnValue.Error(String.Format(@"Command {0} not recognised", parts[0]));
             }
 
-            return command.Execute(parts.Skip(1).ToArray());
+            return command.Execute(parts);
         }
 
-       public ReturnValue Run(RunDetails runDetails)
-       {
-           return _runner.Run(runDetails);
-       }
+        public ReturnValue Run(RunDetails runDetails)
+        {
+            return _runner.Run(runDetails);
+        }
     }
 }
