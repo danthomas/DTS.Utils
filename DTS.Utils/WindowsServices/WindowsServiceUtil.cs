@@ -21,7 +21,7 @@ namespace DTS.Utils.WindowsServices
             Command<ListArgs, Action>()
                 .Action(Action.List, "Lists the services filtered by name")
                 .Arg("n", x => x.Name)
-                .Run(GetListRunProcessDetails, ProcessListOutput);
+                .RunProcess(GetListRunProcessDetails, ProcessListOutput);
 
             Command<StateArgs, Action>()
                 .Action(Action.State, "Gets the action of the specified service")
@@ -29,7 +29,7 @@ namespace DTS.Utils.WindowsServices
                 .Action(Action.Stop, "Stops the specified service")
                 .Arg("n", x => x.Service)
                 .Arg("s", x => x.Server)
-                .Run(GetStateStopStartRunProcessDetails, ProcessStateStopStartOutput);
+                .RunProcess(GetStateStopStartRunProcessDetails, ProcessStateStopStartOutput);
         }
 
         private ReturnValue SetServer(SessionArgs args, Action action)

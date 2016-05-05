@@ -6,11 +6,11 @@ using DTS.Utils.Core;
 
 namespace DTS.Utils
 {
-    public class Command<T, A> : ICommand where T : class, new()
+    public class Command<TA, TC> : ICommand where TA : class, new()
     {
         private readonly UtilBase _utilBase;
         private readonly List<ArgDef> _argDefs;
-        private Func<T, A, ReturnValue> _func;
+        private Func<TA, TC, ReturnValue> _func;
         private readonly string _argChar;
         private readonly string[] _truthy;
         private readonly string[] _falsy;
@@ -35,18 +35,18 @@ namespace DTS.Utils
             get { return String.Join(", ", _argDefs.Select(x => $"{x.Name}: {x.Type.Name} {(x.Required ? " required" : "")}")); }
         }
 
-        public Command<T, A> Action(A action, string description)
+        public Command<TA, TC> Action(TC action, string description)
         {
             Actions.Add(new ActionDef(action, description));
             Names = Actions.Select(x => x.Action.ToString().ToLower()).ToArray();
             return this;
         }
 
-        public Command<T, A> Arg<P>(string name, Expression<Func<T, P>> expression, bool required = false)
+        public Command<TA, TC> Arg<P>(string name, Expression<Func<TA, P>> expression, bool required = false)
         {
             var member = ((MemberExpression)expression.Body).Member;
 
-            ParameterExpression sourceParam = Expression.Parameter(typeof(T));
+            ParameterExpression sourceParam = Expression.Parameter(typeof(TA));
             ParameterExpression valueParam = Expression.Parameter(typeof(string));
 
             Expression propertyExpression = Expression.Property(sourceParam, member.Name, null);
@@ -81,7 +81,7 @@ namespace DTS.Utils
             }
 
             _argDefs.Add(new ArgDef(_argChar + name, required, type, Expression
-                .Lambda<Func<T, string, bool>>(Expression.Block(variables, expressions), sourceParam, valueParam)
+                .Lambda<Func<TA, string, bool>>(Expression.Block(variables, expressions), sourceParam, valueParam)
                 .Compile()));
 
             return this;
@@ -89,9 +89,9 @@ namespace DTS.Utils
 
         public ReturnValue Execute(string[] args)
         {
-            A action = (A)Enum.Parse(typeof(A), args[0], true);
+            TC action = (TC)Enum.Parse(typeof(TC), args[0], true);
 
-            T t = new T();
+            TA t = new TA();
 
             _argDefs.ForEach(x =>
             {
@@ -173,20 +173,21 @@ namespace DTS.Utils
             return ret;
         }
 
-        public Command<T, A> NoOp(Func<T, A, ReturnValue> func)
+        public Command<TA, TC> NoOp(Func<TA, TC, ReturnValue> func)
         {
             _func = func;
             return this;
         }
 
-        public Command<T, A> Run(Func<T, A, RunProcessDetails> func, Func<T, A, string, ReturnValue> processOutput)
+        public Command<TA, TC> RunProcess(Func<TA, TC, RunProcessDetails> getRunProcessDetails, Func<TA, TC, string, ReturnValue> processOutput)
         {
             _func = (t, a) =>
             {
-                var returnValue = _utilBase.RunProcess(func(t, a));
+                var returnValue = _utilBase.RunProcess(getRunProcessDetails(t, a));
 
                 return processOutput(t, a, returnValue.Message);
             };
+
             return this;
         }
 
@@ -195,10 +196,10 @@ namespace DTS.Utils
             public string Name { get; }
             public bool Required { get; }
             public Type Type { get; }
-            private Func<T, string, bool> Func { get; }
+            private Func<TA, string, bool> Func { get; }
             public State State { get; set; }
 
-            public ArgDef(string name, bool required, Type type, Func<T, string, bool> func)
+            public ArgDef(string name, bool required, Type type, Func<TA, string, bool> func)
             {
                 Name = name;
                 Required = required;
@@ -206,7 +207,7 @@ namespace DTS.Utils
                 Func = func;
             }
 
-            public void SetValue(T t, string value)
+            public void SetValue(TA t, string value)
             {
                 Value = value;
                 State = Func(t, value)
@@ -226,14 +227,14 @@ namespace DTS.Utils
 
         private class ActionDef
         {
-            public ActionDef(A action, string description)
+            public ActionDef(TC action, string description)
             {
                 Action = action;
                 Name = action.ToString().ToLower();
                 Description = description;
             }
 
-            public A Action { get; set; }
+            public TC Action { get; set; }
             public string Name { get; set; }
             public string Description { get; set; }
         }
