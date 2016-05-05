@@ -23,7 +23,7 @@ namespace DTS.Utils
             return this;
         }
 
-        public override ReturnValue ShowHelp(UtilBase.Args args, UtilBase.CommandType commandType)
+        public override ReturnValue ShowHelp(EmptyArgs args, UtilBase.CommandType commandType)
         {
             string message = String.Join(Environment.NewLine, _utils.Select(x => $"{x.Name}: {x.Description}"));
             return ReturnValue.Ok(message);

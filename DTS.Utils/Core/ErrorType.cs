@@ -9,6 +9,7 @@ namespace DTS.Utils.Core
         RequiredArgumentsMissing,
         InvalidArguments,
         ServiceStateNotFound,
-        ScError
+        ScError,
+        FailedToSetCurrentDirectory
     }
 }

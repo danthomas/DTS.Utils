@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using DTS.Utils.Core;
 
@@ -15,32 +16,51 @@ namespace DTS.Utils
             Description = description;
             _commands = new List<ICommand>();
 
-            Command<Args, CommandType>()
+            Command<EmptyArgs, CommandType>()
               .Action(CommandType.Help, "Details the available utils")
               .NoOp(ShowHelp);
 
-            Command<Args, CommandType>()
+            Command<EmptyArgs, CommandType>()
               .Action(CommandType.Exit, "Exit the application")
               .NoOp(Exit);
+
+            Command<CurrArgs, CommandType>()
+              .Action(CommandType.Curr, "Sets the current working directory")
+              .Arg("p", x => x.DirectoryPath, true)
+              .NoOp(SetCurrentWorkingDirectory);
         }
 
-        public virtual ReturnValue ShowHelp(Args args, CommandType commandType)
+        private ReturnValue SetCurrentWorkingDirectory(CurrArgs args, CommandType commandType)
+        {
+            try
+            {
+                Directory.SetCurrentDirectory(args.DirectoryPath);
+
+                return ReturnValue.Ok($"Current Directory set to {Directory.GetCurrentDirectory()}");
+            }
+            catch (Exception e)
+            {
+                return ReturnValue.Error(ErrorType.FailedToSetCurrentDirectory, $@"Failed to set Current Directory {e.Message}");
+            }
+        }
+
+        public virtual ReturnValue ShowHelp(EmptyArgs args, CommandType commandType)
         {
             List<string> lines = new List<string>(new[] { $"{Name} commands:" });
 
             foreach (ICommand command in _commands)
             {
-               // command.
+                
                 foreach (var name in command.Names)
                 {
-                    lines.Add($"{name}");
+                    lines.Add($"{name}: {command.ArgsDescription}");
                 }
             }
 
-            return ReturnValue.Ok(String.Join(Environment.NewLine, _commands.SelectMany(x => x.Names).Select(x => x)));
+            return ReturnValue.Ok(String.Join(Environment.NewLine, lines));
         }
 
-        private ReturnValue Exit(Args arg1, CommandType arg2)
+        private ReturnValue Exit(EmptyArgs arg1, CommandType arg2)
         {
             return new ExitAppReturnValue();
         }
@@ -48,11 +68,13 @@ namespace DTS.Utils
         public enum CommandType
         {
             Exit,
-            Help
+            Help,
+            Curr
         }
 
-        public class Args
+        public class CurrArgs
         {
+            public string DirectoryPath { get; set; }
         }
 
         public string Name { get; set; }

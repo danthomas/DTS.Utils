@@ -26,10 +26,14 @@ namespace DTS.Utils
             Actions = new List<ActionDef>();
         }
 
-        private List<ActionDef> Actions { get; set; }
-        private List<ArgDef> ArgDefs { get; set; }
+        private List<ActionDef> Actions { get; }
 
         public string[] Names { get; set; }
+
+        public string ArgsDescription
+        {
+            get { return String.Join(", ", _argDefs.Select(x => $"{x.Name}: {x.Type.Name} {(x.Required ? " required" : "")}")); }
+        }
 
         public Command<T, A> Action(A action, string description)
         {
