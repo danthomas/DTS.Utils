@@ -54,14 +54,14 @@
     <Compile Include="EmptyArgs.cs" />
     <Compile Include="ExitAppReturnValue.cs" />
     <Compile Include="IProcessRunner.cs" />
-    <Compile Include="Nuget\Util.cs" />
+    <Compile Include="Nuget\NugetUtil.cs" />
     <Compile Include="Processes\Util.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\ReturnValue.cs" />
     <Compile Include="RunProcessDetails.cs" />
     <Compile Include="UtilBase.cs" />
     <Compile Include="UtilRunner.cs" />
-    <Compile Include="WindowsServices\Util.cs" />
+    <Compile Include="WindowsServices\WindowsServiceUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

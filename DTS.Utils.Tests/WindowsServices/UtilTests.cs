@@ -6,7 +6,7 @@ namespace DTS.Utils.Tests.WindowsServices
 {
     public class UtilTests
     {
-        private Util _util;
+        private WindowsServiceUtil _windowsServiceUtil;
         private IProcessRunner _processRunner;
 
 
@@ -14,7 +14,7 @@ namespace DTS.Utils.Tests.WindowsServices
         public void SetUp()
         {
             _processRunner = Substitute.For<IProcessRunner>();
-            _util = new Util {ProcessRunner = _processRunner};
+            _windowsServiceUtil = new WindowsServiceUtil {ProcessRunner = _processRunner};
         }
 
         [Test]
@@ -28,16 +28,16 @@ namespace DTS.Utils.Tests.WindowsServices
 
             _processRunner.Run(Arg.Do<RunProcessDetails>(x => runProcessDetails = x));
 
-            var returnValue = _util.Execute(line);
+            var returnValue = _windowsServiceUtil.Execute(line);
 
             Assert.That(runProcessDetails.Exe, Is.EqualTo(exe));
             Assert.That(runProcessDetails.Args, Is.EqualTo(noServerArgs));
 
-            returnValue = _util.Execute(serverLine);
+            returnValue = _windowsServiceUtil.Execute(serverLine);
             
             Assert.That(returnValue.IsSuccess, Is.True);
             
-            returnValue = _util.Execute(line);
+            returnValue = _windowsServiceUtil.Execute(line);
             
             Assert.That(runProcessDetails.Exe, Is.EqualTo(exe));
             Assert.That(runProcessDetails.Args, Is.EqualTo(serverArgs));

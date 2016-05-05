@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DTS.Utils.Core
 {
@@ -20,6 +22,13 @@ namespace DTS.Utils.Core
             }
 
             return thisString.Substring(index + last.Length);
+        }
+
+        public static List<string> SplitAndTrim(this string thisString, string splitOn)
+        {
+            return thisString.Split(new[] { splitOn }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .ToList();
         }
     }
 }

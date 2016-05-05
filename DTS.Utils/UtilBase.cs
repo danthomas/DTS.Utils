@@ -10,10 +10,11 @@ namespace DTS.Utils
     {
         private readonly List<ICommand> _commands;
 
-        public UtilBase(string name, string description)
+        protected UtilBase(string name, string description)
         {
             Name = name;
             Description = description;
+
             _commands = new List<ICommand>();
 
             Command<EmptyArgs, CommandType>()

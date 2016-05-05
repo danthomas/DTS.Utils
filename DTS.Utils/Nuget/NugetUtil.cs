@@ -6,12 +6,12 @@ using Newtonsoft.Json;
 
 namespace DTS.Utils.Nuget
 {
-    public class Util : UtilBase
+    public class NugetUtil : UtilBase
     {
         private Session _session;
-        private string _filePath;
+        private readonly string _filePath;
 
-        public Util() : base("nuget", "Nuget utils")
+        public NugetUtil() : base("nuget", "Nuget utils")
         {
             _filePath = $@"C:\temp\nuget.session.json";
 

@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using DTS.Utils.Core;
 
 namespace DTS.Utils.WindowsServices
 {
-    public class Util : UtilBase
+    public class WindowsServiceUtil : UtilBase
     {
         private string _server;
 
-        public Util()
-            : base("svc", "Windows Service Util")
+        public WindowsServiceUtil()
+            : base("svc", "Windows Service NugetUtil")
         {
             Command<SessionArgs, Action>()
                 .Action(Action.Server, "Sets the server for the current session")
@@ -69,7 +70,7 @@ namespace DTS.Utils.WindowsServices
 
         private ReturnValue ProcessStateStopStartOutput(StateArgs stateArgs, Action action, string output)
         {
-            string state = GetTrimmedLines(output)
+            string state = output.SplitAndTrim(Environment.NewLine)
                 .Where(x => x.StartsWith("STATE"))
                 .Select(x => x.EverythingAfterLast(" "))
                 .FirstOrDefault();
@@ -94,23 +95,27 @@ namespace DTS.Utils.WindowsServices
                 : returnValue;
         }
 
-        private static IList<string> GetTrimmedLines(string output)
-        {
-            return output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => x.Trim())
-                .ToList();
-        }
-
         private ReturnValue CheckOutputForErrors(string output, int errorCode)
         {
-            var lines = GetTrimmedLines(output);
+            var lines = output.SplitAndTrim(Environment.NewLine);
 
             if (lines.Count > 0 && lines[0].Contains(errorCode.ToString()))
             {
-                //ToDo: map error code to error type
+                ErrorType errorType = ErrorType.ScError;
+                
+                switch (errorCode)
+                {
+                    case 1056:
+                        errorType = ErrorType.StartServiceFailed;
+                        break;
+                    case 1062:
+                        errorType = ErrorType.StopServiceFailed;
+                        break;
+                }
+
                 var errorMessage = lines.Skip(1).FirstOrDefault() ?? "Unknown error";
 
-                return ReturnValue.Error(ErrorType.ScError, errorMessage);
+                return ReturnValue.Error(errorType, errorMessage);
             }
 
             return ReturnValue.Ok();
