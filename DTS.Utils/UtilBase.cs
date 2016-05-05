@@ -5,23 +5,65 @@ using DTS.Utils.Core;
 
 namespace DTS.Utils
 {
-    public class UtilBase
+    public abstract class UtilBase
     {
-        private readonly IProcessRunner _processRunner;
         private readonly List<ICommand> _commands;
 
-        public UtilBase(string name, IProcessRunner processRunner)
+        public UtilBase(string name, string description)
         {
             Name = name;
-            _processRunner = processRunner;
+            Description = description;
             _commands = new List<ICommand>();
+
+            Command<Args, CommandType>()
+              .Action(CommandType.Help, "Details the available utils")
+              .NoOp(ShowHelp);
+
+            Command<Args, CommandType>()
+              .Action(CommandType.Exit, "Exit the application")
+              .NoOp(Exit);
+        }
+
+        public virtual ReturnValue ShowHelp(Args args, CommandType commandType)
+        {
+            List<string> lines = new List<string>(new[] { $"{Name} commands:" });
+
+            foreach (ICommand command in _commands)
+            {
+               // command.
+                foreach (var name in command.Names)
+                {
+                    lines.Add($"{name}");
+                }
+            }
+
+            return ReturnValue.Ok(String.Join(Environment.NewLine, _commands.SelectMany(x => x.Names).Select(x => x)));
+        }
+
+        private ReturnValue Exit(Args arg1, CommandType arg2)
+        {
+            return new ExitAppReturnValue();
+        }
+
+        public enum CommandType
+        {
+            Exit,
+            Help
+        }
+
+        public class Args
+        {
         }
 
         public string Name { get; set; }
+        public string Description { get; set; }
+        internal IProcessRunner ProcessRunner { get; set; }
 
-        protected Command<T, A> Command<T, A>() where T : class, new()
+        protected Command<A, C> Command<A, C>()
+            where A : class, new()
+            where C : struct
         {
-            Command<T, A> command = new Command<T, A>(this);
+            Command<A, C> command = new Command<A, C>(this);
 
             _commands.Add(command);
 
@@ -30,30 +72,19 @@ namespace DTS.Utils
 
         public ReturnValue Execute(string line)
         {
-            string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var returnValue = GetCommand(line);
 
-            
-            if (parts.Length > 0)
+            if (returnValue.IsSuccess)
             {
-                var name = parts[0];
-
-                var command = _commands.SingleOrDefault(x => x.Names.Contains(name.ToLower()));
-
-                if (command == null)
-                {
-                    return ReturnValue.Error($@"Command {name} not recognised");
-                }
-
-                return command.Execute(parts);
+                return returnValue.Data.Command.Execute(returnValue.Data.Args);
             }
-            
-            //ToDo : list available commands
-            return ReturnValue.Error($@"Enter a command");
+
+            return returnValue;
         }
 
         public ReturnValue RunProcess(RunProcessDetails runProcessDetails)
         {
-            return _processRunner.Run(runProcessDetails);
+            return ProcessRunner.Run(runProcessDetails);
         }
 
         public void Run(IInput input, IOutput output)
@@ -70,6 +101,36 @@ namespace DTS.Utils
 
                 output.WriteReturnValue(Execute(line));
             }
+        }
+
+        protected ReturnValue<CommandDetails> GetCommand(string line)
+        {
+            string[] args = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            ICommand command;
+
+            string name;
+
+            if (args.Length > 0)
+            {
+                name = args[0];
+
+                command = _commands.SingleOrDefault(x => x.Names.Contains(name.ToLower()));
+            }
+            else
+            {
+                return ReturnValue<CommandDetails>.Error(ErrorType.CommandNotSpecified, @"Command not specified");
+            }
+
+            return command == null
+                ? ReturnValue<CommandDetails>.Error(ErrorType.CommandNotRecognised, @"Command not recognised")
+                : ReturnValue<CommandDetails>.Ok(new CommandDetails { Command = command, Args = args });
+        }
+
+        protected class CommandDetails
+        {
+            public ICommand Command { get; set; }
+            public string[] Args { get; set; }
         }
     }
 }

@@ -27,6 +27,7 @@ namespace DTS.Utils
         }
 
         private List<ActionDef> Actions { get; set; }
+        private List<ArgDef> ArgDefs { get; set; }
 
         public string[] Names { get; set; }
 
@@ -130,7 +131,7 @@ namespace DTS.Utils
                 }
                 else
                 {
-                    return ReturnValue.Error($"Value expected for argument {argDef.Name}");
+                    return ReturnValue.Error(ErrorType.ValueExpected, $"Value expected for argument {argDef.Name}");
                 }
             }
 
@@ -138,7 +139,7 @@ namespace DTS.Utils
 
             if (requiredArgsWithNoValue.Any())
             {
-                return ReturnValue.Error(
+                return ReturnValue.Error(ErrorType.RequiredArgumentsMissing,
                     $@"Required arguments not set: {String.Join(", ", requiredArgsWithNoValue.Select(x => x.Name))}");
             }
 
@@ -146,7 +147,7 @@ namespace DTS.Utils
 
             if (invalidArgs.Any())
             {
-                return ReturnValue.Error(
+                return ReturnValue.Error(ErrorType.InvalidArguments,
                     $@"Invalid arguments : {String.Join(", ", invalidArgs.Select(x => $"{x.Name} = {x.Value}"))}");
             }
 

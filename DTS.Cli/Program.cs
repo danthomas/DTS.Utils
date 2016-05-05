@@ -10,8 +10,8 @@ namespace DTS.Cli
 
             var processRunner = new ProcessRunner();
 
-            new UtilRunner()
-                .Util(new Utils.WindowsServices.Util(processRunner))
+            new UtilRunner(processRunner)
+                .Util<Utils.WindowsServices.Util>()
                 .Run(inputOutput, inputOutput);
         }
     }

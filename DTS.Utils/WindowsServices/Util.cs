@@ -9,8 +9,8 @@ namespace DTS.Utils.WindowsServices
     {
         private string _server;
 
-        public Util(IProcessRunner processRunner)
-            : base("svc", processRunner)
+        public Util()
+            : base("svc", "Windows Service Util")
         {
             Command<SessionArgs, Action>()
                 .Action(Action.Server, "Sets the server for the current session")
@@ -48,13 +48,14 @@ namespace DTS.Utils.WindowsServices
 
         private ReturnValue ProcessListOutput(ListArgs listArgs, Action action, string output)
         {
-            var message = string.Join(Environment.NewLine,
-                            output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
-                                .Where(x => x.StartsWith("SERVICE_NAME: "))
-                                .Select(x => x.Replace("SERVICE_NAME: ", ""))
-                                .Where(x => String.IsNullOrWhiteSpace(listArgs.Name) || x.ToLower().Contains(listArgs.Name.ToLower())));
+            var lines = output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(x => x.StartsWith("SERVICE_NAME: "))
+                .Select(x => x.Replace("SERVICE_NAME: ", ""))
+                .Where(x => String.IsNullOrWhiteSpace(listArgs.Name) || x.ToLower().Contains(listArgs.Name.ToLower())).ToList();
 
-            return ReturnValue.Ok(message);
+            lines.Add($"{lines.Count()} services found");
+
+            return ReturnValue.Ok(String.Join(Environment.NewLine, lines));
         }
 
         private RunProcessDetails GetStateStopStartRunProcessDetails(StateArgs stateArgs, Action action)
@@ -85,11 +86,11 @@ namespace DTS.Utils.WindowsServices
             }
             else if (action == Action.State && state == null)
             {
-                returnValue = ReturnValue.Error("Failed to find the action");
+                returnValue = ReturnValue.Error(ErrorType.ServiceStateNotFound, "Failed to find the state");
             }
 
             return returnValue.IsSuccess
-                ? ReturnValue.Ok(state) 
+                ? ReturnValue.Ok(state)
                 : returnValue;
         }
 
@@ -106,9 +107,10 @@ namespace DTS.Utils.WindowsServices
 
             if (lines.Count > 0 && lines[0].Contains(errorCode.ToString()))
             {
+                //ToDo: map error code to error type
                 var errorMessage = lines.Skip(1).FirstOrDefault() ?? "Unknown error";
 
-                return ReturnValue.Error(errorMessage);
+                return ReturnValue.Error(ErrorType.ScError, errorMessage);
             }
 
             return ReturnValue.Ok();
