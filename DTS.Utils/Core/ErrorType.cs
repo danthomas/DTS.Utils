@@ -12,6 +12,7 @@ namespace DTS.Utils.Core
         ScError,
         FailedToSetCurrentDirectory,
         StartServiceFailed,
-        StopServiceFailed
+        StopServiceFailed,
+        EndOfList
     }
 }

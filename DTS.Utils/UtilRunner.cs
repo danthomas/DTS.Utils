@@ -45,21 +45,47 @@ namespace DTS.Utils
                 
                 if (getCommandReturnValue.IsSuccess)
                 {
-                    var executeReturnValue = getCommandReturnValue.Data.Command.Execute(getCommandReturnValue.Data.Args);
+                     CommandDetails data = getCommandReturnValue.Data;
+                    
+                    data.Command.Init(data.Args);
 
-                    if (executeReturnValue.ReturnValueType == ReturnValueType.ExitApplication)
+                    ReturnValue executeReturnValue;
+
+                    bool exitApplication = false;
+
+                    do
+                    {
+                        executeReturnValue = data.Command.ExecuteFunc();
+                        
+                        if (executeReturnValue.ReturnValueType == ReturnValueType.ExitApplication)
+                        {
+                            exitApplication = true;
+                            break;
+                        }
+
+                        RunProcessReturnValue runProcessReturnValue = executeReturnValue as RunProcessReturnValue;
+
+                        if (runProcessReturnValue != null)
+                        {
+                            executeReturnValue = _processRunner.Run(runProcessReturnValue.RunProcessDetails);
+
+                            if (executeReturnValue.IsSuccess)
+                            {
+                                _currentUtil.ProcessOutput = executeReturnValue.Message;
+                            }
+                        }
+                        else
+                        {
+                            output.WriteReturnValue(executeReturnValue);
+                        }
+
+                    } while (executeReturnValue.IsSuccess);
+
+                    if (exitApplication)
                     {
                         break;
                     }
-                    
-                    RunProcessReturnValue runProcessReturnValue = executeReturnValue as RunProcessReturnValue;
 
-                    if (runProcessReturnValue != null)
-                    {
-                        executeReturnValue = _processRunner.Run(runProcessReturnValue.RunProcessDetails);
-                    }
-
-                    output.WriteReturnValue(executeReturnValue);
                 }
                 else
                 {

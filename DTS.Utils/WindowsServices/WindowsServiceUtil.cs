@@ -55,8 +55,7 @@ namespace DTS.Utils.WindowsServices
 
         private ReturnValue ProcessListOutput(ListArgs listArgs, Action action, Context context)
         {
-
-            var lines = context.Output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+            var lines = ProcessOutput.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.StartsWith("SERVICE_NAME: "))
                 .Select(x => x.Replace("SERVICE_NAME: ", ""))
                 .Where(x => String.IsNullOrWhiteSpace(listArgs.Name) || x.ToLower().Contains(listArgs.Name.ToLower())).ToList();

@@ -4,6 +4,7 @@
     {
         string[] Names { get; set; }
         string ArgsDescription { get; }
-        ReturnValue Execute(string[] args);
+        ReturnValue Init(string[] args);
+        ReturnValue ExecuteFunc();
     }
 }

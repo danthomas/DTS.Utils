@@ -20,7 +20,8 @@ namespace DTS.Utils
         
         public string Name { get; set; }
         public string Description { get; set; }
-        
+        public string ProcessOutput { get; set; }
+
         protected Command<A, C, X> Command<A, C, X>()
             where A : class, new()
             where C : struct
@@ -31,18 +32,6 @@ namespace DTS.Utils
             _commands.Add(command);
 
             return command;
-        }
-
-        public ReturnValue Execute(string line)
-        {
-            var returnValue = GetCommand(line);
-
-            if (returnValue.IsSuccess)
-            {
-                return returnValue.Data.Command.Execute(returnValue.Data.Args);
-            }
-
-            return returnValue;
         }
 
         public ReturnValue<CommandDetails> GetCommand(string line)

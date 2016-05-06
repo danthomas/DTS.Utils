@@ -15,6 +15,10 @@ namespace DTS.Utils
         private readonly string _argChar;
         private readonly string[] _truthy;
         private readonly string[] _falsy;
+        private TX _context;
+        private int _index;
+        private TA _args;
+        private TC _commandType;
 
         internal Command()
         {
@@ -88,11 +92,11 @@ namespace DTS.Utils
             return this;
         }
 
-        public ReturnValue Execute(string[] args)
+        public ReturnValue Init(string[] args)
         {
-            TC action = (TC)Enum.Parse(typeof(TC), args[0], true);
+            TC commandType = (TC)Enum.Parse(typeof(TC), args[0], true);
 
-            TA t = new TA();
+            TA a = new TA();
 
             _argDefs.ForEach(x =>
             {
@@ -128,11 +132,11 @@ namespace DTS.Utils
                         ? GetBoolValue(args[i++])
                         : true.ToString();
 
-                    argDef.SetValue(t, value);
+                    argDef.SetValue(a, value);
                 }
                 else if (i < args.Length)
                 {
-                    argDef.SetValue(t, args[i++]);
+                    argDef.SetValue(a, args[i++]);
                 }
                 else
                 {
@@ -158,18 +162,26 @@ namespace DTS.Utils
 
             ReturnValue returnValue = null;
 
-            TX context = new TX();
+            _context = new TX();
 
-            foreach (var func in _funcs)
-            {
-                returnValue = func(t, action, context);
-                if (!returnValue.IsSuccess)
-                {
-                    break;
-                }
-            }
+            _args = a;
+
+            _commandType = commandType;
+            
+            _index = 0;
 
             return returnValue;
+        }
+
+        public ReturnValue ExecuteFunc()
+        {
+            if (_index < _funcs.Count)
+            {
+                return _funcs[_index++](_args, _commandType, _context);
+            }
+
+            //ToDo   dont return an error
+            return ReturnValue.Error(ErrorType.EndOfList, "");
         }
 
         private string GetBoolValue(string value)

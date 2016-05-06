@@ -1,4 +1,5 @@
-﻿using DTS.Utils.WindowsServices;
+﻿/*
+using DTS.Utils.WindowsServices;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -44,3 +45,4 @@ namespace DTS.Utils.Tests.WindowsServices
         }
     }
 }
+*/

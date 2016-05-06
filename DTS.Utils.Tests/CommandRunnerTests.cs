@@ -1,4 +1,5 @@
-﻿using System;
+﻿/*
+using System;
 using System.Collections.Generic;
 using DTS.Utils.Core;
 using NUnit.Framework;
@@ -21,12 +22,12 @@ namespace DTS.Utils.Tests
         [TestCase("command1 cde /i 789 /b true ", "cde", true, 789)]//positional && named
         public void PositionalAndNamed(string line, string s, bool b, int i)
         {
-            var returnValue = _testUtilBase.Execute(line);
-
-            Assert.That(returnValue.IsSuccess);
-            Assert.That(_testUtilBase.Command1Args.String, Is.EqualTo(s));
-            Assert.That(_testUtilBase.Command1Args.Bool, Is.EqualTo(b));
-            Assert.That(_testUtilBase.Command1Args.Int32, Is.EqualTo(i));
+            //var returnValue = _testUtilBase.Execute(line);
+            //
+            //Assert.That(returnValue.IsSuccess);
+            //Assert.That(_testUtilBase.Command1Args.String, Is.EqualTo(s));
+            //Assert.That(_testUtilBase.Command1Args.Bool, Is.EqualTo(b));
+            //Assert.That(_testUtilBase.Command1Args.Int32, Is.EqualTo(i));
         }
 
         [Test]
@@ -153,3 +154,4 @@ namespace DTS.Utils.Tests
     {
     }
 }
+*/
