@@ -16,77 +16,17 @@ namespace DTS.Utils
             Description = description;
 
             _commands = new List<ICommand>();
-
-            Command<EmptyArgs, CommandType>()
-              .Action(CommandType.Help, "Details the available utils")
-              .NoOp(ShowHelp);
-
-            Command<EmptyArgs, CommandType>()
-              .Action(CommandType.Exit, "Exit the application")
-              .NoOp(Exit);
-
-            Command<CurrArgs, CommandType>()
-              .Action(CommandType.Curr, "Sets the current working directory")
-              .Arg("p", x => x.DirectoryPath, true)
-              .NoOp(SetCurrentWorkingDirectory);
         }
-
-        private ReturnValue SetCurrentWorkingDirectory(CurrArgs args, CommandType commandType)
-        {
-            try
-            {
-                Directory.SetCurrentDirectory(args.DirectoryPath);
-
-                return ReturnValue.Ok($"Current Directory set to {Directory.GetCurrentDirectory()}");
-            }
-            catch (Exception e)
-            {
-                return ReturnValue.Error(ErrorType.FailedToSetCurrentDirectory, $@"Failed to set Current Directory {e.Message}");
-            }
-        }
-
-        public virtual ReturnValue ShowHelp(EmptyArgs args, CommandType commandType)
-        {
-            List<string> lines = new List<string>(new[] { $"{Name} commands:" });
-
-            foreach (ICommand command in _commands)
-            {
-                
-                foreach (var name in command.Names)
-                {
-                    lines.Add($"{name}: {command.ArgsDescription}");
-                }
-            }
-
-            return ReturnValue.Ok(String.Join(Environment.NewLine, lines));
-        }
-
-        private ReturnValue Exit(EmptyArgs arg1, CommandType arg2)
-        {
-            return new ExitAppReturnValue();
-        }
-
-        public enum CommandType
-        {
-            Exit,
-            Help,
-            Curr
-        }
-
-        public class CurrArgs
-        {
-            public string DirectoryPath { get; set; }
-        }
-
+        
         public string Name { get; set; }
         public string Description { get; set; }
-        internal IProcessRunner ProcessRunner { get; set; }
-
-        protected Command<A, C> Command<A, C>()
+        
+        protected Command<A, C, X> Command<A, C, X>()
             where A : class, new()
             where C : struct
+            where X : class, new()
         {
-            Command<A, C> command = new Command<A, C>(this);
+            Command<A, C, X> command = new Command<A, C, X>();
 
             _commands.Add(command);
 
@@ -105,28 +45,7 @@ namespace DTS.Utils
             return returnValue;
         }
 
-        public ReturnValue RunProcess(RunProcessDetails runProcessDetails)
-        {
-            return ProcessRunner.Run(runProcessDetails);
-        }
-
-        public void Run(IInput input, IOutput output)
-        {
-            while (true)
-            {
-                string line = input.ReadLine();
-
-
-                if (line == "exit")
-                {
-                    break;
-                }
-
-                output.WriteReturnValue(Execute(line));
-            }
-        }
-
-        protected ReturnValue<CommandDetails> GetCommand(string line)
+        public ReturnValue<CommandDetails> GetCommand(string line)
         {
             string[] args = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -148,12 +67,6 @@ namespace DTS.Utils
             return command == null
                 ? ReturnValue<CommandDetails>.Error(ErrorType.CommandNotRecognised, @"Command not recognised")
                 : ReturnValue<CommandDetails>.Ok(new CommandDetails { Command = command, Args = args });
-        }
-
-        protected class CommandDetails
-        {
-            public ICommand Command { get; set; }
-            public string[] Args { get; set; }
         }
     }
 }

@@ -101,23 +101,23 @@ namespace DTS.Utils.Tests
     {
         public TestUtilBase() : base(null, null)
         {
-            Command<Command1Args, Action>()
+            Command<Command1Args, Action, Context>()
                 .Action(Action.Command1, "")
                 .Arg("s", x => x.String)
                 .Arg("b", x => x.Bool)
                 .Arg("i", x => x.Int32)
-                .NoOp((args, a) =>
+                .NoOp((args, a, x) =>
                 {
                     Command1Args = args;
                     return ReturnValue.Ok();
                 });
 
-            Command<Command2Args, Action>()
+            Command<Command2Args, Action, Context>()
                 .Action(Action.Command2, "")
                 .Arg("s", x => x.String, true)
                 .Arg("b", x => x.Bool, true)
                 .Arg("i", x => x.Int32)
-                .NoOp((args, a) =>
+                .NoOp((args, a, x) =>
                 {
                     Command2Args = args;
                     return ReturnValue.Ok();
@@ -147,5 +147,9 @@ namespace DTS.Utils.Tests
         public string String { get; set; }
         public bool Bool { get; set; }
         public int Int32 { get; set; }
+    }
+
+    class Context
+    {
     }
 }

@@ -1,32 +1,29 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using DTS.Utils.Core;
+using DTS.Utils.Runner;
 
 namespace DTS.Utils
 {
-    public class UtilRunner : UtilBase
+    public class UtilRunner
     {
+        private readonly IProcessRunner _processRunner;
         private readonly List<UtilBase> _utils;
+        private readonly RunnerUtil _runnerUtil;
+        private UtilBase _currentUtil;
 
-        public UtilRunner(IProcessRunner processRunner) : base(null, null)
+        public UtilRunner(IProcessRunner processRunner)
         {
-            ProcessRunner = processRunner;
-
+            _processRunner = processRunner;
             _utils = new List<UtilBase>();
+            _currentUtil = _runnerUtil = new RunnerUtil();
         }
 
         public UtilRunner Util<T>() where T : UtilBase, new()
         {
-            T t = new T { ProcessRunner = ProcessRunner };
+            T t = new T();
             _utils.Add(t);
             return this;
-        }
-
-        public override ReturnValue ShowHelp(EmptyArgs args, UtilBase.CommandType commandType)
-        {
-            string message = String.Join(Environment.NewLine, _utils.Select(x => $"{x.Name}: {x.Description}"));
-            return ReturnValue.Ok(message);
         }
 
         public void Run(IInput input, IOutput output)
@@ -35,8 +32,17 @@ namespace DTS.Utils
             {
                 var line = input.ReadLine();
 
-                var getCommandReturnValue = GetCommand(line);
+                var util = GetUtil(line);
 
+                if (util != null)
+                {
+                    _currentUtil = util;
+                    output.WriteLine($"--->{util.Name}: {util.Description}");
+                    continue;
+                }
+
+                var getCommandReturnValue = GetCommand(line);
+                
                 if (getCommandReturnValue.IsSuccess)
                 {
                     var executeReturnValue = getCommandReturnValue.Data.Command.Execute(getCommandReturnValue.Data.Args);
@@ -45,38 +51,38 @@ namespace DTS.Utils
                     {
                         break;
                     }
+                    
+                    RunProcessReturnValue runProcessReturnValue = executeReturnValue as RunProcessReturnValue;
+
+                    if (runProcessReturnValue != null)
+                    {
+                        executeReturnValue = _processRunner.Run(runProcessReturnValue.RunProcessDetails);
+                    }
 
                     output.WriteReturnValue(executeReturnValue);
                 }
                 else
                 {
-                    var util = _utils.SingleOrDefault(x => x.Name == line);
-
-                    if (util == null)
-                    {
-                        output.WriteLine($"Unrecognised utility: {line}");
-                    }
-                    else
-                    {
-                        util.Run(input, output);
-                    }
+                    output.WriteLine($"Util or Command {line} not recognised");
                 }
             }
         }
 
-        internal enum CommandType
+        private ReturnValue<CommandDetails> GetCommand(string line)
         {
-            Exit,
-            Help
+            var returnValue = _currentUtil.GetCommand(line) ;
+
+            if (!returnValue.IsSuccess)
+            {
+                returnValue = _runnerUtil.GetCommand(line);
+            }
+
+            return returnValue;
         }
 
-        internal class Args
+        private UtilBase GetUtil(string line)
         {
+            return _utils.FirstOrDefault(x => x.Name == line);
         }
-    }
-
-    public interface IInput
-    {
-        string ReadLine();
     }
 }

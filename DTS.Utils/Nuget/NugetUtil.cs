@@ -22,7 +22,7 @@ namespace DTS.Utils.Nuget
                 _session = new Session();
             }
 
-            Command<SessionArgs, Actions>()
+            Command<SessionArgs, Actions, Context>()
                 .Action(Actions.Ses, "Sets the current _session args")
                 .Arg("s", x => x.SolutionFile)
                 .Arg("r", x => x.ReadSessionArgs)
@@ -37,7 +37,11 @@ namespace DTS.Utils.Nuget
             //    .NoOp(SetServer);
         }
 
-        private ReturnValue SetSessionArgs(SessionArgs args, Actions action)
+        public class Context
+        {
+        }
+
+        private ReturnValue SetSessionArgs(SessionArgs args, Actions action, Context context)
         {
             if (args.ReadSessionArgs)
             {

@@ -14,7 +14,7 @@ namespace DTS.Utils.Tests.WindowsServices
         public void SetUp()
         {
             _processRunner = Substitute.For<IProcessRunner>();
-            _windowsServiceUtil = new WindowsServiceUtil {ProcessRunner = _processRunner};
+            _windowsServiceUtil = new WindowsServiceUtil();
         }
 
         [Test]

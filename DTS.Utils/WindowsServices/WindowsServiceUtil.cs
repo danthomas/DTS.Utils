@@ -13,32 +13,38 @@ namespace DTS.Utils.WindowsServices
         public WindowsServiceUtil()
             : base("svc", "Windows Service NugetUtil")
         {
-            Command<SessionArgs, Action>()
+            Command<SessionArgs, Action, Context>()
                 .Action(Action.Server, "Sets the server for the current session")
                 .Arg("n", x => x.Server)
                 .NoOp(SetServer);
 
-            Command<ListArgs, Action>()
+            Command<ListArgs, Action, Context>()
                 .Action(Action.List, "Lists the services filtered by name")
                 .Arg("n", x => x.Name)
-                .RunProcess(GetListRunProcessDetails, ProcessListOutput);
+                .RunProcess(GetListRunProcessDetails)
+                .ProcessOutput(ProcessListOutput);
 
-            Command<StateArgs, Action>()
+            Command<StateArgs, Action, Context>()
                 .Action(Action.State, "Gets the action of the specified service")
                 .Action(Action.Start, "Starts the specified service")
                 .Action(Action.Stop, "Stops the specified service")
                 .Arg("n", x => x.Service)
                 .Arg("s", x => x.Server)
-                .RunProcess(GetStateStopStartRunProcessDetails, ProcessStateStopStartOutput);
+                .RunProcess(GetStateStopStartRunProcessDetails);
         }
 
-        private ReturnValue SetServer(SessionArgs args, Action action)
+        public class Context
+        {
+            public string Output { get; set; }
+        }
+
+        private ReturnValue SetServer(SessionArgs args, Action action, Context context)
         {
             _server = args.Server;
             return ReturnValue.Ok();
         }
 
-        private RunProcessDetails GetListRunProcessDetails(ListArgs listArgs, Action action)
+        private RunProcessDetails GetListRunProcessDetails(ListArgs listArgs, Action action, Context context)
         {
             return new RunProcessDetails
             {
@@ -47,9 +53,10 @@ namespace DTS.Utils.WindowsServices
             };
         }
 
-        private ReturnValue ProcessListOutput(ListArgs listArgs, Action action, string output)
+        private ReturnValue ProcessListOutput(ListArgs listArgs, Action action, Context context)
         {
-            var lines = output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+
+            var lines = context.Output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.StartsWith("SERVICE_NAME: "))
                 .Select(x => x.Replace("SERVICE_NAME: ", ""))
                 .Where(x => String.IsNullOrWhiteSpace(listArgs.Name) || x.ToLower().Contains(listArgs.Name.ToLower())).ToList();
@@ -59,7 +66,7 @@ namespace DTS.Utils.WindowsServices
             return ReturnValue.Ok(String.Join(Environment.NewLine, lines));
         }
 
-        private RunProcessDetails GetStateStopStartRunProcessDetails(StateArgs stateArgs, Action action)
+        private RunProcessDetails GetStateStopStartRunProcessDetails(StateArgs stateArgs, Action action, Context context)
         {
             return new RunProcessDetails
             {

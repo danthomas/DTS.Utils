@@ -6,18 +6,19 @@ using DTS.Utils.Core;
 
 namespace DTS.Utils
 {
-    public class Command<TA, TC> : ICommand where TA : class, new()
+    public class Command<TA, TC, TX> : ICommand
+        where TA : class, new()
+        where TX : class, new()
     {
-        private readonly UtilBase _utilBase;
         private readonly List<ArgDef> _argDefs;
-        private Func<TA, TC, ReturnValue> _func;
+        private List<Func<TA, TC, TX, ReturnValue>> _funcs;
         private readonly string _argChar;
         private readonly string[] _truthy;
         private readonly string[] _falsy;
 
-        internal Command(UtilBase utilBase)
+        internal Command()
         {
-            _utilBase = utilBase;
+            _funcs = new List<Func<TA, TC, TX, ReturnValue>>();
             _argChar = "/";
             _truthy = new[] { "true", "t", "1" };
             _falsy = new[] { "false", "f", "0" };
@@ -35,14 +36,14 @@ namespace DTS.Utils
             get { return String.Join(", ", _argDefs.Select(x => $"{x.Name}: {x.Type.Name} {(x.Required ? " required" : "")}")); }
         }
 
-        public Command<TA, TC> Action(TC action, string description)
+        public Command<TA, TC, TX> Action(TC action, string description)
         {
             Actions.Add(new ActionDef(action, description));
             Names = Actions.Select(x => x.Action.ToString().ToLower()).ToArray();
             return this;
         }
 
-        public Command<TA, TC> Arg<P>(string name, Expression<Func<TA, P>> expression, bool required = false)
+        public Command<TA, TC, TX> Arg<P>(string name, Expression<Func<TA, P>> expression, bool required = false)
         {
             var member = ((MemberExpression)expression.Body).Member;
 
@@ -155,7 +156,20 @@ namespace DTS.Utils
                     $@"Invalid arguments : {String.Join(", ", invalidArgs.Select(x => $"{x.Name} = {x.Value}"))}");
             }
 
-            return _func(t, action);
+            ReturnValue returnValue = null;
+
+            TX context = new TX();
+
+            foreach (var func in _funcs)
+            {
+                returnValue = func(t, action, context);
+                if (!returnValue.IsSuccess)
+                {
+                    break;
+                }
+            }
+
+            return returnValue;
         }
 
         private string GetBoolValue(string value)
@@ -173,20 +187,22 @@ namespace DTS.Utils
             return ret;
         }
 
-        public Command<TA, TC> NoOp(Func<TA, TC, ReturnValue> func)
+        public Command<TA, TC, TX> NoOp(Func<TA, TC, TX, ReturnValue> func)
         {
-            _func = func;
+            _funcs.Add(func);
             return this;
         }
 
-        public Command<TA, TC> RunProcess(Func<TA, TC, RunProcessDetails> getRunProcessDetails, Func<TA, TC, string, ReturnValue> processOutput)
+        public Command<TA, TC, TX> RunProcess(Func<TA, TC, TX, RunProcessDetails> getRunProcessDetails)
         {
-            _func = (t, a) =>
-            {
-                var returnValue = _utilBase.RunProcess(getRunProcessDetails(t, a));
+            _funcs.Add((t, c, x) => new RunProcessReturnValue(getRunProcessDetails(t, c, x)));
 
-                return processOutput(t, a, returnValue.Message);
-            };
+            return this;
+        }
+
+        public Command<TA, TC, TX> ProcessOutput(Func<TA, TC, TX, ReturnValue> getRunProcessDetails)
+        {
+            _funcs.Add(getRunProcessDetails);
 
             return this;
         }
