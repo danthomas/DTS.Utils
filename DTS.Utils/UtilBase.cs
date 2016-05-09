@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using DTS.Utils.Core;
 
@@ -8,19 +7,37 @@ namespace DTS.Utils
 {
     public abstract class UtilBase
     {
-        private readonly List<ICommand> _commands;
+        protected readonly List<ICommand> Commands;
 
         protected UtilBase(string name, string description)
         {
             Name = name;
             Description = description;
 
-            _commands = new List<ICommand>();
+            Commands = new List<ICommand>();
+
+            Command<EmptyArgs, CommandType, Context>()
+              .Action(CommandType.Help, "Details the available utils")
+              .NoOp(ShowHelp);
         }
-        
+
+        private ReturnValue ShowHelp(EmptyArgs args, CommandType commandType, Context context)
+        {
+            List<string> lines = new List<string>(new[] { $"{Name} commands:" });
+
+            foreach (ICommand command in Commands)
+            {
+                foreach (var act in command.Acts.Where(x => x.Name != CommandType.Help.ToString().ToLower()))
+                {
+                    lines.Add($"{act.Name}: {command.ArgsDescription} : {act.Description}");
+                }
+            }
+
+            return ReturnValue.Ok(String.Join(Environment.NewLine, lines));
+        }
+
         public string Name { get; set; }
         public string Description { get; set; }
-        public string ProcessOutput { get; set; }
 
         protected Command<A, C, X> Command<A, C, X>()
             where A : class, new()
@@ -29,7 +46,7 @@ namespace DTS.Utils
         {
             Command<A, C, X> command = new Command<A, C, X>();
 
-            _commands.Add(command);
+            Commands.Add(command);
 
             return command;
         }
@@ -46,7 +63,7 @@ namespace DTS.Utils
             {
                 name = args[0];
 
-                command = _commands.SingleOrDefault(x => x.Names.Contains(name.ToLower()));
+                command = Commands.SingleOrDefault(x => x.Acts.Select(y => y.Name).Contains(name.ToLower()));
             }
             else
             {
@@ -56,6 +73,19 @@ namespace DTS.Utils
             return command == null
                 ? ReturnValue<CommandDetails>.Error(ErrorType.CommandNotRecognised, @"Command not recognised")
                 : ReturnValue<CommandDetails>.Ok(new CommandDetails { Command = command, Args = args });
+        }
+
+        public class Context
+        {
+        }
+
+        internal enum CommandType
+        {
+            Help
+        }
+
+        internal class Args
+        {
         }
     }
 }

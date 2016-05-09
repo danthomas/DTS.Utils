@@ -20,5 +20,10 @@ namespace DTS.Cli
         {
             Console.WriteLine(returnValue.Message);
         }
+
+        public void Clear()
+        {
+            Console.Clear();
+        }
     }
 }

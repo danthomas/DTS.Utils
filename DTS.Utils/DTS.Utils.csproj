@@ -45,8 +45,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ClearReturnValue.cs" />
     <Compile Include="Command.cs" />
     <Compile Include="CommandDetails.cs" />
+    <Compile Include="Core\Act.cs" />
     <Compile Include="Core\ErrorType.cs" />
     <Compile Include="Core\Extensions.cs" />
     <Compile Include="Core\ICommand.cs" />

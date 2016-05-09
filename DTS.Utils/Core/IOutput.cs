@@ -4,5 +4,6 @@ namespace DTS.Utils.Core
     {
         void WriteLine(string output);
         void WriteReturnValue(ReturnValue returnValue);
+        void Clear();
     }
 }

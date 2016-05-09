@@ -11,14 +11,15 @@ namespace DTS.Utils
         where TX : class, new()
     {
         private readonly List<ArgDef> _argDefs;
-        private List<Func<TA, TC, TX, ReturnValue>> _funcs;
+        private readonly List<Func<TA, TC, TX, ReturnValue>> _funcs;
         private readonly string _argChar;
         private readonly string[] _truthy;
         private readonly string[] _falsy;
-        private TX _context;
         private int _index;
+
         private TA _args;
         private TC _commandType;
+        private TX _context;
 
         internal Command()
         {
@@ -31,9 +32,7 @@ namespace DTS.Utils
             Actions = new List<ActionDef>();
         }
 
-        private List<ActionDef> Actions { get; }
-
-        public string[] Names { get; set; }
+        internal List<ActionDef> Actions { get; }
 
         public string ArgsDescription
         {
@@ -43,9 +42,11 @@ namespace DTS.Utils
         public Command<TA, TC, TX> Action(TC action, string description)
         {
             Actions.Add(new ActionDef(action, description));
-            Names = Actions.Select(x => x.Action.ToString().ToLower()).ToArray();
+            Acts = Actions.Select(x => new Act( x.Action.ToString().ToLower(), x.Description)).ToArray();
             return this;
         }
+
+        public Act[] Acts { get; set; }
 
         public Command<TA, TC, TX> Arg<P>(string name, Expression<Func<TA, P>> expression, bool required = false)
         {
@@ -212,13 +213,6 @@ namespace DTS.Utils
             return this;
         }
 
-        public Command<TA, TC, TX> ProcessOutput(Func<TA, TC, TX, ReturnValue> getRunProcessDetails)
-        {
-            _funcs.Add(getRunProcessDetails);
-
-            return this;
-        }
-
         private class ArgDef
         {
             public string Name { get; }
@@ -253,7 +247,7 @@ namespace DTS.Utils
             Invalid
         }
 
-        private class ActionDef
+        internal class ActionDef
         {
             public ActionDef(TC action, string description)
             {

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using DTS.Utils.Core;
 
@@ -7,11 +6,11 @@ namespace DTS.Utils.Runner
 {
     public class RunnerUtil : UtilBase
     {
-        public RunnerUtil() : base("", "")
+        public RunnerUtil() : base("root", "")
         {
             Command<EmptyArgs, CommandType, Context>()
-              .Action(CommandType.Help, "Details the available utils")
-              .NoOp(ShowHelp);
+              .Action(CommandType.Cls, "Clears the console")
+              .NoOp(Clear);
 
             Command<EmptyArgs, CommandType, Context>()
               .Action(CommandType.Exit, "Exit the application")
@@ -21,27 +20,11 @@ namespace DTS.Utils.Runner
               .Action(CommandType.Curr, "Sets the current working directory")
               .Arg("p", x => x.DirectoryPath, true)
               .NoOp(SetCurrentWorkingDirectory);
-
         }
 
-        public class Context
+        private ReturnValue Clear(EmptyArgs arg1, CommandType arg2, Context context)
         {
-        }
-
-        private ReturnValue ShowHelp(EmptyArgs args, CommandType commandType, Context context)
-        {
-            List<string> lines = new List<string>(new[] { $"{Name} commands:" });
-
-            //foreach (ICommand command in _commands)
-            //{
-            //
-            //    foreach (var name in command.Names)
-            //    {
-            //        lines.Add($"{name}: {command.ArgsDescription}");
-            //    }
-            //}
-
-            return ReturnValue.Ok(String.Join(Environment.NewLine, lines));
+            return new ClearReturnValue();
         }
 
         private ReturnValue Exit(EmptyArgs arg1, CommandType arg2, Context context)
@@ -63,12 +46,17 @@ namespace DTS.Utils.Runner
             }
         }
 
+        public class Context
+        {
+        }
+
 
         internal enum CommandType
         {
             Exit,
             Help,
-            Curr
+            Curr,
+            Cls
         }
 
         public class CurrArgs

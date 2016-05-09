@@ -32,21 +32,15 @@ namespace DTS.Utils
             {
                 var line = input.ReadLine();
 
-                var util = GetUtil(line);
-
-                if (util != null)
-                {
-                    _currentUtil = util;
-                    output.WriteLine($"--->{util.Name}: {util.Description}");
+                if (TrySetCurrentUtil(output, line))
                     continue;
-                }
 
                 var getCommandReturnValue = GetCommand(line);
-                
+
                 if (getCommandReturnValue.IsSuccess)
                 {
-                     CommandDetails data = getCommandReturnValue.Data;
-                    
+                    CommandDetails data = getCommandReturnValue.Data;
+
                     data.Command.Init(data.Args);
 
                     ReturnValue executeReturnValue;
@@ -56,10 +50,16 @@ namespace DTS.Utils
                     do
                     {
                         executeReturnValue = data.Command.ExecuteFunc();
-                        
+
                         if (executeReturnValue.ReturnValueType == ReturnValueType.ExitApplication)
                         {
                             exitApplication = true;
+                            break;
+                        }
+
+                        if (executeReturnValue.ReturnValueType == ReturnValueType.Clear)
+                        {
+                            output.Clear();
                             break;
                         }
 
@@ -71,7 +71,7 @@ namespace DTS.Utils
 
                             if (executeReturnValue.IsSuccess)
                             {
-                                _currentUtil.ProcessOutput = executeReturnValue.Message;
+                                runProcessReturnValue.RunProcessDetails.SetOutput(executeReturnValue.Message);
                             }
                         }
                         else
@@ -85,7 +85,6 @@ namespace DTS.Utils
                     {
                         break;
                     }
-
                 }
                 else
                 {
@@ -94,9 +93,22 @@ namespace DTS.Utils
             }
         }
 
+        private bool TrySetCurrentUtil(IOutput output, string line)
+        {
+            var util = GetUtil(line);
+
+            if (util != null)
+            {
+                _currentUtil = util;
+                output.WriteLine($"--->{util.Name}: {util.Description}");
+                return true;
+            }
+            return false;
+        }
+
         private ReturnValue<CommandDetails> GetCommand(string line)
         {
-            var returnValue = _currentUtil.GetCommand(line) ;
+            var returnValue = _currentUtil.GetCommand(line);
 
             if (!returnValue.IsSuccess)
             {

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using DTS.Utils.Core;
 
 namespace DTS.Utils.WindowsServices
@@ -22,7 +20,7 @@ namespace DTS.Utils.WindowsServices
                 .Action(Action.List, "Lists the services filtered by name")
                 .Arg("n", x => x.Name)
                 .RunProcess(GetListRunProcessDetails)
-                .ProcessOutput(ProcessListOutput);
+                .NoOp(ProcessListOutput);
 
             Command<StateArgs, Action, Context>()
                 .Action(Action.State, "Gets the action of the specified service")
@@ -30,7 +28,8 @@ namespace DTS.Utils.WindowsServices
                 .Action(Action.Stop, "Stops the specified service")
                 .Arg("n", x => x.Service)
                 .Arg("s", x => x.Server)
-                .RunProcess(GetStateStopStartRunProcessDetails);
+                .RunProcess(GetStateStopStartRunProcessDetails)
+                .NoOp(ProcessStateStopStartOutput);
         }
 
         public class Context
@@ -49,13 +48,14 @@ namespace DTS.Utils.WindowsServices
             return new RunProcessDetails
             {
                 Exe = "sc.exe",
-                Args = "query state= all"
+                Args = "query state= all",
+                SetOutput = x => context.Output = x
             };
         }
 
         private ReturnValue ProcessListOutput(ListArgs listArgs, Action action, Context context)
         {
-            var lines = ProcessOutput.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
+            var lines = context.Output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.StartsWith("SERVICE_NAME: "))
                 .Select(x => x.Replace("SERVICE_NAME: ", ""))
                 .Where(x => String.IsNullOrWhiteSpace(listArgs.Name) || x.ToLower().Contains(listArgs.Name.ToLower())).ToList();
@@ -70,13 +70,14 @@ namespace DTS.Utils.WindowsServices
             return new RunProcessDetails
             {
                 Exe = "sc.exe",
-                Args = GetArgs(stateArgs, action)
+                Args = GetArgs(stateArgs, action),
+                SetOutput = x => context.Output = x
             };
         }
 
-        private ReturnValue ProcessStateStopStartOutput(StateArgs stateArgs, Action action, string output)
+        private ReturnValue ProcessStateStopStartOutput(StateArgs stateArgs, Action action, Context context)
         {
-            string state = output.SplitAndTrim(Environment.NewLine)
+            string state = context.Output.SplitAndTrim(Environment.NewLine)
                 .Where(x => x.StartsWith("STATE"))
                 .Select(x => x.EverythingAfterLast(" "))
                 .FirstOrDefault();
@@ -85,11 +86,11 @@ namespace DTS.Utils.WindowsServices
 
             if (action == Action.Start)
             {
-                returnValue = CheckOutputForErrors(output, 1056);
+                returnValue = CheckOutputForErrors(context.Output, 1056);
             }
             else if (action == Action.Stop)
             {
-                returnValue = CheckOutputForErrors(output, 1062);
+                returnValue = CheckOutputForErrors(context.Output, 1062);
             }
             else if (action == Action.State && state == null)
             {
