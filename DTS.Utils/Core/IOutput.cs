@@ -2,8 +2,8 @@ namespace DTS.Utils.Core
 {
     public interface IOutput
     {
-        void WriteLine(string output);
         void WriteReturnValue(ReturnValue returnValue);
         void Clear();
+        void WriteLines(params string[] lines);
     }
 }

@@ -11,9 +11,12 @@ namespace DTS.Cli
             return Console.ReadLine();
         }
 
-        public void WriteLine(string output)
+        public void WriteLines(params string[] lines)
         {
-            Console.WriteLine(output);
+            foreach (var line in lines)
+            {
+                Console.WriteLine(line);
+            }
         }
 
         public void WriteReturnValue(ReturnValue returnValue)

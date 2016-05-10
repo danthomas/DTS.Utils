@@ -64,6 +64,7 @@ namespace DTS.Utils
                         }
 
                         RunProcessReturnValue runProcessReturnValue = executeReturnValue as RunProcessReturnValue;
+                        WriteOutputReturnValue writeOutputReturnValue = executeReturnValue as WriteOutputReturnValue;
 
                         if (runProcessReturnValue != null)
                         {
@@ -73,6 +74,10 @@ namespace DTS.Utils
                             {
                                 runProcessReturnValue.RunProcessDetails.SetOutput(executeReturnValue.Message);
                             }
+                        }
+                        else if (writeOutputReturnValue != null)
+                        {
+                            output.WriteLines(writeOutputReturnValue.Lines);
                         }
                         else
                         {
@@ -88,7 +93,7 @@ namespace DTS.Utils
                 }
                 else
                 {
-                    output.WriteLine($"Util or Command {line} not recognised");
+                    output.WriteLines($"Util or Command {line} not recognised");
                 }
             }
         }
@@ -100,7 +105,7 @@ namespace DTS.Utils
             if (util != null)
             {
                 _currentUtil = util;
-                output.WriteLine($"--->{util.Name}: {util.Description}");
+                output.WriteLines($"--->{util.Name}: {util.Description}");
                 return true;
             }
             return false;

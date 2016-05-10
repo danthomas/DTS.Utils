@@ -213,6 +213,14 @@ namespace DTS.Utils
             return this;
         }
 
+
+        public Command<TA, TC, TX> WriteOutput(Func<TA, TC, TX, WriteOutputReturnValue> func)
+        {
+            _funcs.Add(func);
+
+            return this;
+        }
+
         private class ArgDef
         {
             public string Name { get; }

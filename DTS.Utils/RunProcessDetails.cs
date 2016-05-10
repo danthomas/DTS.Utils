@@ -7,5 +7,5 @@ namespace DTS.Utils
         public string Exe { get; set; }
         public string Args { get; set; }
         public Action<string> SetOutput { get; set; }
-    }
+    } 
 }

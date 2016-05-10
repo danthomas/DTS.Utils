@@ -12,6 +12,7 @@ namespace DTS.Cli
 
             new UtilRunner(processRunner)
                 .Util<Utils.WindowsServices.WindowsServiceUtil>()
+                .Util<Utils.Processes.ProcessesUtil>()
                 .Util<Utils.Nuget.NugetUtil>()
                 .Run(inputOutput, inputOutput);
         }

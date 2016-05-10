@@ -20,7 +20,7 @@ namespace DTS.Utils.WindowsServices
                 .Action(Action.List, "Lists the services filtered by name")
                 .Arg("n", x => x.Name)
                 .RunProcess(GetListRunProcessDetails)
-                .NoOp(ProcessListOutput);
+                .WriteOutput(ProcessListOutput);
 
             Command<StateArgs, Action, Context>()
                 .Action(Action.State, "Gets the action of the specified service")
@@ -53,16 +53,18 @@ namespace DTS.Utils.WindowsServices
             };
         }
 
-        private ReturnValue ProcessListOutput(ListArgs listArgs, Action action, Context context)
+        private WriteOutputReturnValue ProcessListOutput(ListArgs listArgs, Action action, Context context)
         {
             var lines = context.Output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.StartsWith("SERVICE_NAME: "))
                 .Select(x => x.Replace("SERVICE_NAME: ", ""))
                 .Where(x => String.IsNullOrWhiteSpace(listArgs.Name) || x.ToLower().Contains(listArgs.Name.ToLower())).ToList();
 
-            lines.Add($"{lines.Count()} services found");
+            var count = lines.Count;
 
-            return ReturnValue.Ok(String.Join(Environment.NewLine, lines));
+            lines.Add($"{count} service{(count == 1 ? "" : "s")} found");
+
+            return  new WriteOutputReturnValue(lines.ToArray());
         }
 
         private RunProcessDetails GetStateStopStartRunProcessDetails(StateArgs stateArgs, Action action, Context context)
