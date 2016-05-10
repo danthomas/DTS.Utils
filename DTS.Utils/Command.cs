@@ -42,7 +42,7 @@ namespace DTS.Utils
         public Command<TA, TC, TX> Action(TC action, string description)
         {
             Actions.Add(new ActionDef(action, description));
-            Acts = Actions.Select(x => new Act( x.Action.ToString().ToLower(), x.Description)).ToArray();
+            Acts = Actions.Select(x => new Act(x.Action.ToString().ToLower(), x.Description)).ToArray();
             return this;
         }
 
@@ -168,7 +168,7 @@ namespace DTS.Utils
             _args = a;
 
             _commandType = commandType;
-            
+
             _index = 0;
 
             return returnValue;
@@ -214,9 +214,9 @@ namespace DTS.Utils
         }
 
 
-        public Command<TA, TC, TX> WriteOutput(Func<TA, TC, TX, WriteOutputReturnValue> func)
+        public Command<TA, TC, TX> WriteOutput(Func<TA, TC, TX, IEnumerable<string>> func)
         {
-            _funcs.Add(func);
+            _funcs.Add((t, c, x) => new WriteOutputReturnValue(func(t, c, x).ToArray()));
 
             return this;
         }

@@ -16,10 +16,9 @@ namespace DTS.Utils.Processes
                 .WriteOutput(ListProcesses);
         }
 
-        private WriteOutputReturnValue ListProcesses(Args arg1, CommandType arg2, Context arg3)
+        private IEnumerable<string> ListProcesses(Args arg1, CommandType arg2, Context arg3)
         {
-            var lines = Process.GetProcesses().Select(x => x.ProcessName).ToArray();
-            return new WriteOutputReturnValue(lines);
+            return Process.GetProcesses().Select(x => x.ProcessName);
         }
 
         enum CommandType

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using DTS.Utils.Core;
 
@@ -53,7 +54,7 @@ namespace DTS.Utils.WindowsServices
             };
         }
 
-        private WriteOutputReturnValue ProcessListOutput(ListArgs listArgs, Action action, Context context)
+        private IEnumerable<string> ProcessListOutput(ListArgs listArgs, Action action, Context context)
         {
             var lines = context.Output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.StartsWith("SERVICE_NAME: "))
@@ -64,7 +65,7 @@ namespace DTS.Utils.WindowsServices
 
             lines.Add($"{count} service{(count == 1 ? "" : "s")} found");
 
-            return  new WriteOutputReturnValue(lines.ToArray());
+            return  lines;
         }
 
         private RunProcessDetails GetStateStopStartRunProcessDetails(StateArgs stateArgs, Action action, Context context)
