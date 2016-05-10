@@ -1,4 +1,4 @@
-namespace DTS.Utils
+namespace DTS.Utils.Core
 {
     public interface IInput
     {

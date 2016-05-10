@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using DTS.Utils.Core;
+using DTS.Utils.Details;
 
 namespace DTS.Utils.Processes
 {

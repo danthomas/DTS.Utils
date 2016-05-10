@@ -1,6 +1,6 @@
 using DTS.Utils.Core;
 
-namespace DTS.Utils
+namespace DTS.Utils.ReturnValues
 {
     internal class ExitAppReturnValue : ReturnValue
     {

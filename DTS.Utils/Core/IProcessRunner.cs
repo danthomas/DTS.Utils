@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
-using DTS.Utils.Core;
+using DTS.Utils.Details;
 
-namespace DTS.Utils
+namespace DTS.Utils.Core
 {
     public interface IProcessRunner
     {

@@ -1,6 +1,4 @@
-using DTS.Utils.Core;
-
-namespace DTS.Utils
+namespace DTS.Utils.Core
 {
     public class CommandDetails
     {

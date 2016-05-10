@@ -1,6 +1,6 @@
 using System;
 
-namespace DTS.Utils
+namespace DTS.Utils.Details
 {
     public class SelectOptionDetails
     {

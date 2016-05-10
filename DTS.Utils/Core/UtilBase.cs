@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DTS.Utils.Core;
 
-namespace DTS.Utils
+namespace DTS.Utils.Core
 {
     public abstract class UtilBase
     {

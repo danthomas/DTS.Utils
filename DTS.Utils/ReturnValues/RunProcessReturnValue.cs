@@ -1,6 +1,7 @@
 using DTS.Utils.Core;
+using DTS.Utils.Details;
 
-namespace DTS.Utils
+namespace DTS.Utils.ReturnValues
 {
     public class RunProcessReturnValue : ReturnValue
     {

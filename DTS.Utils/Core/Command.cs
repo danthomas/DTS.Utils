@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using DTS.Utils.Core;
+using DTS.Utils.Details;
+using DTS.Utils.ReturnValues;
 
-namespace DTS.Utils
+namespace DTS.Utils.Core
 {
     public class Command<TA, TC, TX> : ICommand
         where TA : class, new()
