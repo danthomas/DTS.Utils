@@ -6,9 +6,9 @@ namespace DTS.Cli
 {
     class InputOutput : IInput, IOutput
     {
-        public string ReadLine()
+        public T ReadLine<T>()
         {
-            return Console.ReadLine();
+            return (T)Convert.ChangeType(Console.ReadLine(), typeof(T));
         }
 
         public void WriteLines(params string[] lines)

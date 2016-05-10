@@ -30,7 +30,7 @@ namespace DTS.Utils
         {
             while (true)
             {
-                var line = input.ReadLine();
+                var line = input.ReadLine<string>();
 
                 if (TrySetCurrentUtil(output, line))
                     continue;
@@ -51,6 +51,12 @@ namespace DTS.Utils
                     {
                         executeReturnValue = data.Command.ExecuteFunc();
 
+                        if (executeReturnValue.ErrorType == ErrorType.EndOfList)
+                        {
+                            break;
+                        }
+
+
                         if (executeReturnValue.ReturnValueType == ReturnValueType.ExitApplication)
                         {
                             exitApplication = true;
@@ -63,10 +69,20 @@ namespace DTS.Utils
                             break;
                         }
 
+                        IfReturnValue ifReturnValue = executeReturnValue as IfReturnValue;
                         RunProcessReturnValue runProcessReturnValue = executeReturnValue as RunProcessReturnValue;
+                        SelectOptionReturnValue selectOptionReturnValue = executeReturnValue as SelectOptionReturnValue;
                         WriteOutputReturnValue writeOutputReturnValue = executeReturnValue as WriteOutputReturnValue;
 
-                        if (runProcessReturnValue != null)
+                        if (ifReturnValue != null)
+                        {
+                            if (!ifReturnValue.IfDetails.If)
+                            {
+                                output.WriteLines(ifReturnValue.IfDetails.Message);
+                                break;
+                            }
+                        }
+                        else if (runProcessReturnValue != null)
                         {
                             executeReturnValue = _processRunner.Run(runProcessReturnValue.RunProcessDetails);
 
@@ -79,12 +95,19 @@ namespace DTS.Utils
                         {
                             output.WriteLines(writeOutputReturnValue.Lines);
                         }
+                        else if (selectOptionReturnValue != null)
+                        {
+                            output.WriteLines(selectOptionReturnValue.SelectOptionDetails.Message);
+                            output.WriteLines(selectOptionReturnValue.SelectOptionDetails.Options.Select((x, i) => $"{i}: {x}").ToArray());
+                            int response = input.ReadLine<int>();
+                            selectOptionReturnValue.SelectOptionDetails.OptionSelected(selectOptionReturnValue.SelectOptionDetails.Options[response]);
+                        }
                         else
                         {
                             output.WriteReturnValue(executeReturnValue);
                         }
 
-                    } while (executeReturnValue.IsSuccess);
+                    } while (true);
 
                     if (exitApplication)
                     {

@@ -11,7 +11,7 @@ namespace DTS.Utils.Core
             Message = String.Format(format ?? "", args);
         }
 
-        public bool IsSuccess { get; private set; }
+        public bool IsSuccess { get; protected set; }
         public string Message { get; private set; }
         public ErrorType ErrorType { get; private set; }
 

@@ -6,10 +6,10 @@ namespace DTS.Utils
     {
         public RunProcessDetails RunProcessDetails { get; set; }
         
-        public RunProcessReturnValue(RunProcessDetails getRunProcessDetails)
+        public RunProcessReturnValue(RunProcessDetails runProcessDetails)
             : base(ErrorType.None, "")
         {
-            RunProcessDetails = getRunProcessDetails;
+            RunProcessDetails = runProcessDetails;
         }
     }
 }

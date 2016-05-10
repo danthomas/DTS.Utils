@@ -16,18 +16,18 @@ namespace DTS.Utils
 
             Commands = new List<ICommand>();
 
-            Command<EmptyArgs, CommandType, Context>()
-              .Action(CommandType.Help, "Details the available utils")
+            Command<EmptyArgs, BaseCommandType, EmptyContext>()
+              .Action(BaseCommandType.Help, "Details the available utils")
               .NoOp(ShowHelp);
         }
 
-        private ReturnValue ShowHelp(EmptyArgs args, CommandType commandType, Context context)
+        private ReturnValue ShowHelp(EmptyArgs args, BaseCommandType baseCommandType, EmptyContext baseContext)
         {
             List<string> lines = new List<string>(new[] { $"{Name} commands:" });
 
             foreach (ICommand command in Commands)
             {
-                foreach (var act in command.Acts.Where(x => x.Name != CommandType.Help.ToString().ToLower()))
+                foreach (var act in command.Acts.Where(x => x.Name != BaseCommandType.Help.ToString().ToLower()))
                 {
                     lines.Add($"{act.Name}: {command.ArgsDescription} : {act.Description}");
                 }
@@ -75,17 +75,13 @@ namespace DTS.Utils
                 : ReturnValue<CommandDetails>.Ok(new CommandDetails { Command = command, Args = args });
         }
 
-        public class Context
+        private class BaseContext
         {
         }
 
-        internal enum CommandType
+        private enum BaseCommandType
         {
             Help
-        }
-
-        internal class Args
-        {
         }
     }
 }

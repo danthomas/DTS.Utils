@@ -206,9 +206,22 @@ namespace DTS.Utils
             return this;
         }
 
+        public Command<TA, TC, TX> If(Func<TA, TC, TX, IfDetails> getIfDetails)
+        {
+            _funcs.Add((t, c, x) => new IfReturnValue(getIfDetails(t, c, x)));
+            return this;
+        }
+
         public Command<TA, TC, TX> RunProcess(Func<TA, TC, TX, RunProcessDetails> getRunProcessDetails)
         {
             _funcs.Add((t, c, x) => new RunProcessReturnValue(getRunProcessDetails(t, c, x)));
+
+            return this;
+        }
+
+        public Command<TA, TC, TX> SelectOption(Func<TA, TC, TX, SelectOptionDetails> getSelectOptionDetails)
+        {
+            _funcs.Add((t, c, x) => new SelectOptionReturnValue(getSelectOptionDetails(t, c, x)));
 
             return this;
         }

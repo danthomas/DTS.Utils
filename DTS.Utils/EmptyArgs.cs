@@ -2,6 +2,8 @@
 {
     public class EmptyArgs
     {
-
+    }
+    public class EmptyContext
+    {
     }
 }
