@@ -46,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuilderGenerate\BuilderGenerator.cs" />
-    <Compile Include="BuilderGenerate\BuilderGeneratorCli.cs" />
+    <Compile Include="BuilderGenerate\GeneratorUtil.cs" />
     <Compile Include="Core\GenFile.cs" />
     <Compile Include="Core\Command.cs" />
     <Compile Include="Core\CommandDetails.cs" />
@@ -60,13 +60,15 @@
     <Compile Include="Details\IfDetails.cs" />
     <Compile Include="Core\IInput.cs" />
     <Compile Include="Core\IProcessRunner.cs" />
+    <Compile Include="Details\LoadAssemblyAction.cs" />
+    <Compile Include="Details\WriteFilesAction.cs" />
     <Compile Include="Nuget\NugetUtil.cs" />
     <Compile Include="Processes\ProcessesUtil.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\ReturnValue.cs" />
     <Compile Include="Runner\RunnerUtil.cs" />
     <Compile Include="Details\RunProcessDetails.cs" />
-    <Compile Include="Details\SelectOptionDetails.cs" />
+    <Compile Include="Details\SelectOptionAction.cs" />
     <Compile Include="Core\UtilBase.cs" />
     <Compile Include="TypeDefs\ItemsTypeDef.cs" />
     <Compile Include="TypeDefs\ListTypeDef.cs" />

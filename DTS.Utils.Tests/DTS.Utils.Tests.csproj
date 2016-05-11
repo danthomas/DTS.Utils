@@ -49,6 +49,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Builders\Processes\ProcessesUtilDotContextBuilder.cs" />
+    <Compile Include="Builders\Processes\ProcessesUtilDotArgsBuilder.cs" />
     <Compile Include="CommandRunnerTests.cs" />
     <Compile Include="Processes\ProcessesUtilTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -23,11 +23,9 @@ namespace MPD.V2.Utils.Cli.BuilderGenerate
 
             List<RefTypeDef> refTypes = _typeBuilder.BuildTypeDefs(assembly);
 
-            var refTypeDefs = refTypes.Where(x => x.Type.Assembly.FullName.StartsWith("MPD")
+            var refTypeDefs = refTypes.Where(x => !x.Type.FullName.StartsWith("System.")
                                                   && (x.Type.IsPublic || x.Type.IsNestedPublic)
-                                                  && !x.Type.IsAbstract
-                //&& x.Type.GetConstructor(new Type[0]) != null
-                ).ToArray();
+                                                  && !x.Type.IsAbstract).ToArray();
 
             foreach (var refType in refTypeDefs)
             {
@@ -68,7 +66,7 @@ using System.Linq;");
 // ReSharper disable once CheckNamespace
 namespace {refType.Type.Namespace}.Builders
 {{
-    public class {refType.Name}Builder
+    public class {refType.IdentifierName}Builder
     {{");
                 foreach (var prop in props)
                 {
@@ -84,7 +82,7 @@ namespace {refType.Type.Namespace}.Builders
                 }
 
                 stringBuilder.AppendLine($@"
-        static {refType.Name}Builder()
+        static {refType.IdentifierName}Builder()
         {{");
 
                 foreach (var prop in props.Where(x => !String.IsNullOrEmpty(x.TypeDef.DefaultValue)))
@@ -95,7 +93,7 @@ namespace {refType.Type.Namespace}.Builders
                 stringBuilder.AppendLine($@"        }}");
 
                 stringBuilder.AppendLine($@"
-        private {refType.Name}Builder()
+        private {refType.IdentifierName}Builder()
         {{");
 
                 foreach (var prop in props)
@@ -110,16 +108,16 @@ namespace {refType.Type.Namespace}.Builders
             return New.Build();
         }}
 
-        public static {refType.Name}Builder New
+        public static {refType.IdentifierName}Builder New
         {{
-            get {{ return new {refType.Name}Builder(); }} 
+            get {{ return new {refType.IdentifierName}Builder(); }} 
         }}");
 
                 foreach (var prop in props)
                 {
                     stringBuilder.AppendLine(
                         $@"
-        public {refType.Name}Builder With{prop.Name}({(prop.TypeDef.Params ? $"params {((ItemsTypeDef)prop.TypeDef).ItemTypeName}[]" : prop.TypeDef.Name)} {prop.Name.ToCamelCase()})
+        public {refType.IdentifierName}Builder With{prop.Name}({(prop.TypeDef.Params ? $"params {((ItemsTypeDef)prop.TypeDef).ItemTypeName}[]" : prop.TypeDef.Name)} {prop.Name.ToCamelCase()})
         {{
             _{prop.Name.ToCamelCase()} = {(prop.TypeDef.Params ? $"{prop.Name.ToCamelCase()} == null ? null :" : "") + prop.Name.ToCamelCase() + (prop.TypeDef.Params ? "." + prop.TypeDef.ParamToMethod + "()" : "")};
             return this;

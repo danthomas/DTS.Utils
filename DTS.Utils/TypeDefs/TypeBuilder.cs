@@ -67,7 +67,7 @@ namespace DTS.Utils.TypeDefs
                 _types.Add(propertyType, valueTypeDef);
                 typeDefBase = valueTypeDef;
             }
-            else if (propertyType.IsClass)
+            else if (propertyType.IsClass || propertyType.IsInterface)
             {
                 RefTypeDef refTypeDef = new RefTypeDef(propertyType);
                 _types.Add(propertyType, refTypeDef);

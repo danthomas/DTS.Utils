@@ -6,11 +6,11 @@ using MPD.V2.Utils.Cli.BuilderGenerate;
 
 namespace DTS.Utils.BuilderGenerate
 {
-    class BuilderGeneratorCli : UtilBase
+    public class GeneratorUtil : UtilBase
     {
         private readonly BuilderGenerator _builderGenerator;
 
-        public BuilderGeneratorCli() 
+        public GeneratorUtil() 
             :base("gen", "Generate Builders &...")
         {
             var typeBuilder = new TypeBuilder();
@@ -21,23 +21,25 @@ namespace DTS.Utils.BuilderGenerate
                 .Action(CommandType.Ver, "Generate Verifiers")
                 .Arg("a", a => a.AssemblyFilePath, true)
                 .Arg("o", a => a.OutputDirPath, true)
+                .LoadAssembly((a, c, x) => a.AssemblyFilePath, (a, c) => c.Assembly = a)
                 .WriteFiles(GenFiles);
         }
 
-        private WriteFilesDetails GenFiles(Args args, CommandType commandType, Context context)
+        private WriteFilesAction GenFiles(Args args, CommandType commandType, Context context)
         {
             GenFile[] genFiles = null;
 
             if (commandType == CommandType.Bld)
             {
-                genFiles = _builderGenerator.GenBuilders(Assembly.LoadFile(args.AssemblyFilePath)).ToArray();
+                genFiles = _builderGenerator.GenBuilders(context.Assembly).ToArray();
             }
 
-            return new WriteFilesDetails {DirPath = args.OutputDirPath, GenFiles = genFiles};
+            return new WriteFilesAction {DirPath = args.OutputDirPath, GenFiles = genFiles};
         }
 
         internal class Context
         {
+            public Assembly Assembly { get; set; }
         }
 
         internal enum CommandType

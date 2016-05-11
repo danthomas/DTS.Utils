@@ -20,6 +20,7 @@ namespace DTS.Utils.TypeDefs
         }
 
         public string Name { get; set; }
+        public string IdentifierName => Name.Replace(".", "Dot");
         public string DefaultValue { get; set; }
         public virtual bool Params => false;
         public virtual string ParamToMethod => "";

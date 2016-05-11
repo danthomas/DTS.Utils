@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using DTS.Utils.Details;
 
 namespace DTS.Utils.Core
@@ -160,9 +161,7 @@ namespace DTS.Utils.Core
                 return ReturnValue.Error(ErrorType.InvalidArguments,
                     $@"Invalid arguments : {String.Join(", ", invalidArgs.Select(x => $"{x.Name} = {x.Value}"))}");
             }
-
-            ReturnValue returnValue = null;
-
+            
             _context = new TX();
 
             _args = a;
@@ -171,7 +170,7 @@ namespace DTS.Utils.Core
 
             _index = 0;
 
-            return returnValue;
+            return ReturnValue.Ok();
         }
 
         public ReturnValue ExecuteFunc()
@@ -218,9 +217,9 @@ namespace DTS.Utils.Core
             return this;
         }
 
-        public Command<TA, TC, TX> SelectOption(Func<TA, TC, TX, SelectOptionDetails> getSelectOptionDetails)
+        public Command<TA, TC, TX> SelectOption(Func<TA, TC, TX, SelectOptionAction> getSelectOptionDetails)
         {
-            _funcs.Add((t, c, x) => ReturnValue<SelectOptionDetails>.Ok(getSelectOptionDetails(t, c, x), ReturnValueType.SelectOption));
+            _funcs.Add((t, c, x) => ReturnValue<SelectOptionAction>.Ok(getSelectOptionDetails(t, c, x), ReturnValueType.SelectOption));
             return this;
         }
 
@@ -230,9 +229,19 @@ namespace DTS.Utils.Core
             return this;
         }
 
-        public Command<TA, TC, TX> WriteFiles(Func<TA, TC, TX, WriteFilesDetails> func)
+        public Command<TA, TC, TX> WriteFiles(Func<TA, TC, TX, WriteFilesAction> func)
         {
-            _funcs.Add((t, c, x) => ReturnValue<WriteFilesDetails>.Ok(func(t, c, x), ReturnValueType.WriteFiles));
+            _funcs.Add((t, c, x) => ReturnValue<WriteFilesAction>.Ok(func(t, c, x), ReturnValueType.WriteFiles));
+            return this;
+        }
+
+        public Command<TA, TC, TX> LoadAssembly(Func<TA, TC, TX, string> func, Action<Assembly, TX> action)
+        {
+            _funcs.Add((t, c, x) => ReturnValue<LoadAssemblyAction>.Ok(new LoadAssemblyAction
+            {
+                FilePath = func(t, c, x),
+                Action = a => action(a, x)
+            }, ReturnValueType.LoadAssembly));
             return this;
         }
 

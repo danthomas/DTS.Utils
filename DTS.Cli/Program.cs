@@ -15,6 +15,7 @@ namespace DTS.Cli
                 .Util<Utils.WindowsServices.WindowsServiceUtil>()
                 .Util<Utils.Processes.ProcessesUtil>()
                 .Util<Utils.Nuget.NugetUtil>()
+                .Util<Utils.BuilderGenerate.GeneratorUtil>()
                 .Run(inputOutput, inputOutput);
         }
     }

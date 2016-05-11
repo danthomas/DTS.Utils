@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using DTS.Utils.Core;
 using DTS.Utils.Details;
 using DTS.Utils.Runner;
@@ -45,46 +47,56 @@ namespace DTS.Utils
                 {
                     CommandDetails data = getCommandReturnValue.Data;
 
-                    data.Command.Init(data.Args);
+                   var initReturnValue = data.Command.Init(data.Args);
 
-                    bool runActions = true;
-
-                    while(runActions)
+                    if (initReturnValue.IsSuccess)
                     {
-                        var executeReturnValue = data.Command.ExecuteFunc();
+                        bool runActions = true;
 
-                        if (executeReturnValue.ErrorType == ErrorType.EndOfList)
+                        while (runActions)
                         {
-                            break;
-                        }
+                            var executeReturnValue = data.Command.ExecuteFunc();
 
-                        switch (executeReturnValue.ReturnValueType)
-                        {
-                            case ReturnValueType.Clear:
-                                output.Clear();
+                            if (executeReturnValue.ErrorType == ErrorType.EndOfList)
+                            {
                                 break;
-                            case ReturnValueType.ExitApplication:
-                                readLines = false;
-                                break;
-                            case ReturnValueType.RunProcess:
-                                RunProcess(executeReturnValue);
-                                break;
-                            case ReturnValueType.WriteFiles:
-                                WriteFiles(executeReturnValue);
-                                break;
-                            case ReturnValueType.If:
-                                runActions = If(output, executeReturnValue);
-                                break;
-                            case ReturnValueType.SelectOption:
-                                SelectOption(input, output, executeReturnValue);
-                                break;
-                            case ReturnValueType.WriteOutput:
-                                WriteOutput(output, executeReturnValue);
-                                break;
-                            default:
-                                output.WriteReturnValue(executeReturnValue);
-                                break;
+                            }
+
+                            switch (executeReturnValue.ReturnValueType)
+                            {
+                                case ReturnValueType.Clear:
+                                    output.Clear();
+                                    break;
+                                case ReturnValueType.ExitApplication:
+                                    readLines = false;
+                                    break;
+                                case ReturnValueType.RunProcess:
+                                    RunProcess(executeReturnValue);
+                                    break;
+                                case ReturnValueType.WriteFiles:
+                                    WriteFiles(executeReturnValue);
+                                    break;
+                                case ReturnValueType.If:
+                                    runActions = If(output, executeReturnValue);
+                                    break;
+                                case ReturnValueType.SelectOption:
+                                    SelectOption(input, output, executeReturnValue);
+                                    break;
+                                case ReturnValueType.WriteOutput:
+                                    WriteOutput(output, executeReturnValue);
+                                    break;
+                                case ReturnValueType.LoadAssembly:
+                                    runActions = LoadAssembly(executeReturnValue);
+                                    break;
+                                default:
+                                    output.WriteReturnValue(executeReturnValue);
+                                    break;
+                            }
                         }
+                    }
+                    else
+                    {
+                        output.WriteReturnValue(initReturnValue);
                     }
                 }
                 else
@@ -92,6 +104,25 @@ namespace DTS.Utils
                     output.WriteLines($"Util or Command {line} not recognised");
                 }
             }
+        }
+
+        private bool LoadAssembly(ReturnValue executeReturnValue)
+        {
+            var loadAssemblyAction = ((ReturnValue<LoadAssemblyAction>)executeReturnValue).Data;
+            if (File.Exists(loadAssemblyAction.FilePath))
+            {
+                try
+                {
+                    loadAssemblyAction.Action(Assembly.LoadFile(loadAssemblyAction.FilePath));
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         private static void WriteOutput(IOutput output, ReturnValue executeReturnValue)
@@ -102,7 +133,7 @@ namespace DTS.Utils
 
         private static void SelectOption(IInput input, IOutput output, ReturnValue executeReturnValue)
         {
-            var selectOptionDetails = ((ReturnValue<SelectOptionDetails>) executeReturnValue).Data;
+            var selectOptionDetails = ((ReturnValue<SelectOptionAction>) executeReturnValue).Data;
             output.WriteLines(selectOptionDetails.Message);
             output.WriteLines(selectOptionDetails.Options.Select((x, i) => $"{i}: {x}").ToArray());
             int response = input.ReadLine<int>();
@@ -122,7 +153,7 @@ namespace DTS.Utils
 
         private static void WriteFiles(ReturnValue executeReturnValue)
         {
-            var writeFilesDetails = ((ReturnValue<WriteFilesDetails>) executeReturnValue).Data;
+            var writeFilesDetails = ((ReturnValue<WriteFilesAction>) executeReturnValue).Data;
 
             foreach (var genFile in writeFilesDetails.GenFiles)
             {
