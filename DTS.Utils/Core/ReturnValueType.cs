@@ -2,8 +2,12 @@ namespace DTS.Utils.Core
 {
     public enum ReturnValueType
     {
-        Standard,
+        None,
         ExitApplication,
-        Clear
+        Clear,
+        If,
+        SelectOption,
+        RunProcess,
+        WriteOutput
     }
 }

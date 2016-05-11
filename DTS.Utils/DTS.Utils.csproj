@@ -45,7 +45,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ReturnValues\ClearReturnValue.cs" />
+    <Compile Include="BuilderGenerate\BuilderGenerator.cs" />
+    <Compile Include="BuilderGenerate\BuilderGeneratorCli.cs" />
+    <Compile Include="Core\GenFile.cs" />
     <Compile Include="Core\Command.cs" />
     <Compile Include="Core\CommandDetails.cs" />
     <Compile Include="Core\Act.cs" />
@@ -55,9 +57,7 @@
     <Compile Include="Core\IOutput.cs" />
     <Compile Include="Core\ReturnValueType.cs" />
     <Compile Include="Core\EmptyArgs.cs" />
-    <Compile Include="ReturnValues\ExitAppReturnValue.cs" />
     <Compile Include="Details\IfDetails.cs" />
-    <Compile Include="ReturnValues\IfReturnValue.cs" />
     <Compile Include="Core\IInput.cs" />
     <Compile Include="Core\IProcessRunner.cs" />
     <Compile Include="Nuget\NugetUtil.cs" />
@@ -66,13 +66,18 @@
     <Compile Include="Core\ReturnValue.cs" />
     <Compile Include="Runner\RunnerUtil.cs" />
     <Compile Include="Details\RunProcessDetails.cs" />
-    <Compile Include="ReturnValues\RunProcessReturnValue.cs" />
     <Compile Include="Details\SelectOptionDetails.cs" />
-    <Compile Include="ReturnValues\SelectOptionReturnValue.cs" />
     <Compile Include="Core\UtilBase.cs" />
+    <Compile Include="TypeDefs\ItemsTypeDef.cs" />
+    <Compile Include="TypeDefs\ListTypeDef.cs" />
+    <Compile Include="TypeDefs\NullableTypeDef.cs" />
+    <Compile Include="TypeDefs\Prop.cs" />
+    <Compile Include="TypeDefs\RefTypeDef.cs" />
+    <Compile Include="TypeDefs\TypeBuilder.cs" />
+    <Compile Include="TypeDefs\TypeDefBase.cs" />
+    <Compile Include="TypeDefs\ValueTypeDef.cs" />
     <Compile Include="UtilRunner.cs" />
     <Compile Include="WindowsServices\WindowsServiceUtil.cs" />
-    <Compile Include="ReturnValues\WriteOutputReturnValue.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

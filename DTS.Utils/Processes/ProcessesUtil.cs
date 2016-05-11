@@ -29,7 +29,7 @@ namespace DTS.Utils.Processes
                 .NoOp(StartProcess);
         }
 
-        private SelectOptionDetails GetStopProcessConfirmation(Args args, CommandType commandType, Context context)
+        public SelectOptionDetails GetStopProcessConfirmation(Args args, CommandType commandType, Context context)
         {
             return new SelectOptionDetails
             {
@@ -40,21 +40,21 @@ namespace DTS.Utils.Processes
             };
         }
 
-        private ReturnValue StartProcess(Args args, CommandType commandType, Context context)
+        public ReturnValue StartProcess(Args args, CommandType commandType, Context context)
         {
             Process.Start(args.FilePath);
 
             return ReturnValue.Ok();
         }
 
-        private IfDetails FindProcesses(Args args, CommandType commandType, Context context)
+        public IfDetails FindProcesses(Args args, CommandType commandType, Context context)
         {
             context.Processes = Process.GetProcesses().Where(x => x.ProcessName.ToLower().Contains(args.Name.ToLower())).ToArray();
 
             return new IfDetails { If = context.Processes.Length > 0, Message = "No processed found" };
         }
 
-        private ReturnValue StopProcesses(Args args, CommandType commandType, Context context)
+        public ReturnValue StopProcesses(Args args, CommandType commandType, Context context)
         {
             if (context.StopConfirmed)
             {
@@ -67,27 +67,27 @@ namespace DTS.Utils.Processes
             return ReturnValue.Ok();
         }
 
-        private IEnumerable<string> ListProcesses(Args args, CommandType commandType, Context context)
+        public IEnumerable<string> ListProcesses(Args args, CommandType commandType, Context context)
         {
             return Process.GetProcesses()
                 .Select(x => x.ProcessName)
                 .Where(x => String.IsNullOrWhiteSpace(args.Name) || x.ToLower().Contains(args.Name.ToLower()));
         }
 
-        private enum CommandType
+        public enum CommandType
         {
             List,
             Start,
             Stop
         }
 
-        private class Args
+        public class Args
         {
             public string Name { get; set; }
             public string FilePath { get; set; }
         }
 
-        private class Context
+        public class Context
         {
             public Process[] Processes { get; set; }
             public bool StopConfirmed { get; set; }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using DTS.Utils.Core;
-using DTS.Utils.ReturnValues;
 
 namespace DTS.Utils.Runner
 {
@@ -25,12 +24,12 @@ namespace DTS.Utils.Runner
 
         private ReturnValue Clear(EmptyArgs arg1, CommandType arg2, Context context)
         {
-            return new ClearReturnValue();
+            return ReturnValue.Ok(ReturnValueType.Clear);
         }
 
         private ReturnValue Exit(EmptyArgs arg1, CommandType arg2, Context context)
         {
-            return new ExitAppReturnValue();
+            return ReturnValue.Ok(ReturnValueType.ExitApplication);
         }
 
         private ReturnValue SetCurrentWorkingDirectory(CurrArgs args, CommandType commandType, Context context)

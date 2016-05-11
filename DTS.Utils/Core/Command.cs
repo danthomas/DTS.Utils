@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using DTS.Utils.Details;
-using DTS.Utils.ReturnValues;
 
 namespace DTS.Utils.Core
 {
@@ -209,29 +208,26 @@ namespace DTS.Utils.Core
 
         public Command<TA, TC, TX> If(Func<TA, TC, TX, IfDetails> getIfDetails)
         {
-            _funcs.Add((t, c, x) => new IfReturnValue(getIfDetails(t, c, x)));
+            _funcs.Add((t, c, x) => ReturnValue<IfDetails>.Ok(getIfDetails(t, c, x), ReturnValueType.If));
             return this;
         }
 
         public Command<TA, TC, TX> RunProcess(Func<TA, TC, TX, RunProcessDetails> getRunProcessDetails)
         {
-            _funcs.Add((t, c, x) => new RunProcessReturnValue(getRunProcessDetails(t, c, x)));
-
+            _funcs.Add((t, c, x) => ReturnValue<RunProcessDetails>.Ok(getRunProcessDetails(t, c, x), ReturnValueType.RunProcess));
             return this;
         }
 
         public Command<TA, TC, TX> SelectOption(Func<TA, TC, TX, SelectOptionDetails> getSelectOptionDetails)
         {
-            _funcs.Add((t, c, x) => new SelectOptionReturnValue(getSelectOptionDetails(t, c, x)));
-
+            _funcs.Add((t, c, x) => ReturnValue<SelectOptionDetails>.Ok(getSelectOptionDetails(t, c, x), ReturnValueType.SelectOption));
             return this;
         }
 
 
         public Command<TA, TC, TX> WriteOutput(Func<TA, TC, TX, IEnumerable<string>> func)
         {
-            _funcs.Add((t, c, x) => new WriteOutputReturnValue(func(t, c, x).ToArray()));
-
+            _funcs.Add((t, c, x) => ReturnValue<IEnumerable<string>>.Ok(func(t, c, x).ToArray(), ReturnValueType.WriteOutput));
             return this;
         }
 
