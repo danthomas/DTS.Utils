@@ -1,30 +1,39 @@
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using DTS.Utils.Core;
+using DTS.Utils.Details;
 using DTS.Utils.TypeDefs;
+using MPD.V2.Utils.Cli.BuilderGenerate;
 
-
-namespace MPD.V2.Utils.Cli.BuilderGenerate
+namespace DTS.Utils.BuilderGenerate
 {
     class BuilderGeneratorCli : UtilBase
     {
-        private readonly string _cliSourceFileDirPath;
-        private static Assembly[] _assemblies;
+        private readonly BuilderGenerator _builderGenerator;
 
         public BuilderGeneratorCli() 
             :base("gen", "Generate Builders &...")
         {
+            var typeBuilder = new TypeBuilder();
+            _builderGenerator = new BuilderGenerator(typeBuilder);
+
             Command<Args, CommandType, Context>()
+                .Action(CommandType.Bld, "Generate Builders")
+                .Action(CommandType.Ver, "Generate Verifiers")
                 .Arg("a", a => a.AssemblyFilePath, true)
                 .Arg("o", a => a.OutputDirPath, true)
-                .NoOp(GenFiles);
+                .WriteFiles(GenFiles);
         }
 
-        private ReturnValue GenFiles(Args arg1, CommandType arg2, Context arg3)
+        private WriteFilesDetails GenFiles(Args args, CommandType commandType, Context context)
         {
-            return null;
+            GenFile[] genFiles = null;
 
+            if (commandType == CommandType.Bld)
+            {
+                genFiles = _builderGenerator.GenBuilders(Assembly.LoadFile(args.AssemblyFilePath)).ToArray();
+            }
+
+            return new WriteFilesDetails {DirPath = args.OutputDirPath, GenFiles = genFiles};
         }
 
         internal class Context
@@ -33,7 +42,8 @@ namespace MPD.V2.Utils.Cli.BuilderGenerate
 
         internal enum CommandType
         {
-
+            Bld,
+            Ver
         }
 
         internal class Args
@@ -42,40 +52,26 @@ namespace MPD.V2.Utils.Cli.BuilderGenerate
             public string OutputDirPath { get; set; }
         }
 
-        //public override bool Run()
+        //private void BuildBuilders(Assembly assembly)
         //{
-        //    _assemblies = new[] { typeof(CommunicationChannel).Assembly,
-        //        typeof(SuccessfulDeliveryEmailModel).Assembly,
-        //        typeof(Order).Assembly};
-        //    
-        //    SelectOption("Which Assembly?", _assemblies.Select(x => x.GetName().Name).ToArray(), j =>
-        //    {
-        //        BuildBuilders(_assemblies[j]);
-        //    });
+        //    string buildersDirectory = Path.Combine(_cliSourceFileDirPath.Replace("\\MPD.V2.Utils.Cli", ""), "MPD.V2.Utils", "Builders");
         //
-        //    return true;
+        //    var builders = new BuilderGenerator(new TypeBuilder()).GenBuilders(assembly);
+        //
+        //    foreach (var genFile in builders)
+        //    {
+        //
+        //
+        //        if (Path.GetInvalidFileNameChars().Any(x => genFile.RelativeFilePath.Replace("\\", "").Contains(x)))
+        //        {
+        //        }
+        //        else
+        //        {
+        //        string filePath = Path.Combine(buildersDirectory, genFile.RelativeFilePath);
+        //            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+        //            File.WriteAllText(filePath, genFile.Text);
+        //        }
+        //    }
         //}
-
-        private void BuildBuilders(Assembly assembly)
-        {
-            string buildersDirectory = Path.Combine(_cliSourceFileDirPath.Replace("\\MPD.V2.Utils.Cli", ""), "MPD.V2.Utils", "Builders");
-
-            var builders = new BuilderGenerator(new TypeBuilder()).GenBuilders(assembly);
-
-            foreach (var genFile in builders)
-            {
-
-
-                if (Path.GetInvalidFileNameChars().Any(x => genFile.FilePath.Replace("\\", "").Contains(x)))
-                {
-                }
-                else
-                {
-                string filePath = Path.Combine(buildersDirectory, genFile.FilePath);
-                    Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                    File.WriteAllText(filePath, genFile.Text);
-                }
-            }
-        }
     }
 }

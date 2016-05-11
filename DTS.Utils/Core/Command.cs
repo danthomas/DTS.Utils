@@ -224,10 +224,15 @@ namespace DTS.Utils.Core
             return this;
         }
 
-
         public Command<TA, TC, TX> WriteOutput(Func<TA, TC, TX, IEnumerable<string>> func)
         {
             _funcs.Add((t, c, x) => ReturnValue<IEnumerable<string>>.Ok(func(t, c, x).ToArray(), ReturnValueType.WriteOutput));
+            return this;
+        }
+
+        public Command<TA, TC, TX> WriteFiles(Func<TA, TC, TX, WriteFilesDetails> func)
+        {
+            _funcs.Add((t, c, x) => ReturnValue<WriteFilesDetails>.Ok(func(t, c, x), ReturnValueType.WriteFiles));
             return this;
         }
 

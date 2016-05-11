@@ -1,14 +1,14 @@
 namespace DTS.Utils.Core
 {
-    class GenFile
+    public class GenFile
     {
-        public GenFile(string filePath, string text)
+        public GenFile(string relativeFilePath, string text)
         {
-            FilePath = filePath;
+            RelativeFilePath = relativeFilePath;
             Text = text;
         }
 
-        public string FilePath { get; set; }
+        public string RelativeFilePath { get; set; }
         public string Text { get; set; }
     }
 }

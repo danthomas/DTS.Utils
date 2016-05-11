@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using DTS.Utils.Core;
 using DTS.Utils.Details;
@@ -29,7 +30,9 @@ namespace DTS.Utils
 
         public void Run(IInput input, IOutput output)
         {
-            while (true)
+            bool readLines = true;
+
+            while (readLines)
             {
                 var line = input.ReadLine<string>();
 
@@ -44,9 +47,9 @@ namespace DTS.Utils
 
                     data.Command.Init(data.Args);
 
-                    bool exitApplication = false;
+                    bool runActions = true;
 
-                    do
+                    while(runActions)
                     {
                         var executeReturnValue = data.Command.ExecuteFunc();
 
@@ -55,66 +58,91 @@ namespace DTS.Utils
                             break;
                         }
 
-
-                        if (executeReturnValue.ReturnValueType == ReturnValueType.ExitApplication)
+                        switch (executeReturnValue.ReturnValueType)
                         {
-                            exitApplication = true;
-                            break;
-                        }
-
-                        if (executeReturnValue.ReturnValueType == ReturnValueType.Clear)
-                        {
-                            output.Clear();
-                        }
-                        else if (executeReturnValue.ReturnValueType == ReturnValueType.If)
-                        {
-                            var ifDetails = ((ReturnValue<IfDetails>) executeReturnValue).Data;
-                            if (!ifDetails.If)
-                            {
-                                output.WriteLines(ifDetails.Message);
+                            case ReturnValueType.Clear:
+                                output.Clear();
                                 break;
-                            }
+                            case ReturnValueType.ExitApplication:
+                                readLines = false;
+                                break;
+                            case ReturnValueType.RunProcess:
+                                RunProcess(executeReturnValue);
+                                break;
+                            case ReturnValueType.WriteFiles:
+                                WriteFiles(executeReturnValue);
+                                break;
+                            case ReturnValueType.If:
+                                runActions = If(output, executeReturnValue);
+                                break;
+                            case ReturnValueType.SelectOption:
+                                SelectOption(input, output, executeReturnValue);
+                                break;
+                            case ReturnValueType.WriteOutput:
+                                WriteOutput(output, executeReturnValue);
+                                break;
+                            default:
+                                output.WriteReturnValue(executeReturnValue);
+                                break;
                         }
-                        else if (executeReturnValue.ReturnValueType == ReturnValueType.RunProcess)
-                        {
-                            var runProcessDetails = ((ReturnValue<RunProcessDetails>)executeReturnValue).Data;
-
-                            executeReturnValue = _processRunner.Run(runProcessDetails);
-
-                            if (executeReturnValue.IsSuccess)
-                            {
-                                runProcessDetails.SetOutput(executeReturnValue.Message);
-                            }
-                        }
-                        else if (executeReturnValue.ReturnValueType == ReturnValueType.WriteOutput)
-                        {
-                            var lines = ((ReturnValue<IEnumerable<string>>)executeReturnValue).Data;
-                            output.WriteLines(lines.ToArray());
-                        }
-                        else if (executeReturnValue.ReturnValueType == ReturnValueType.SelectOption)
-                        {
-                            var selectOptionDetails = ((ReturnValue<SelectOptionDetails>)executeReturnValue).Data;
-                            output.WriteLines(selectOptionDetails.Message);
-                            output.WriteLines(selectOptionDetails.Options.Select((x, i) => $"{i}: {x}").ToArray());
-                            int response = input.ReadLine<int>();
-                            selectOptionDetails.OptionSelected(selectOptionDetails.Options[response]);
-                        }
-                        else
-                        {
-                            output.WriteReturnValue(executeReturnValue);
-                        }
-
-                    } while (true);
-
-                    if (exitApplication)
-                    {
-                        break;
                     }
                 }
                 else
                 {
                     output.WriteLines($"Util or Command {line} not recognised");
                 }
+            }
+        }
+
+        private static void WriteOutput(IOutput output, ReturnValue executeReturnValue)
+        {
+            var lines = ((ReturnValue<IEnumerable<string>>) executeReturnValue).Data;
+            output.WriteLines(lines.ToArray());
+        }
+
+        private static void SelectOption(IInput input, IOutput output, ReturnValue executeReturnValue)
+        {
+            var selectOptionDetails = ((ReturnValue<SelectOptionDetails>) executeReturnValue).Data;
+            output.WriteLines(selectOptionDetails.Message);
+            output.WriteLines(selectOptionDetails.Options.Select((x, i) => $"{i}: {x}").ToArray());
+            int response = input.ReadLine<int>();
+            selectOptionDetails.OptionSelected(selectOptionDetails.Options[response]);
+        }
+
+        private static bool If(IOutput output, ReturnValue executeReturnValue)
+        {
+            var ifDetails = ((ReturnValue<IfDetails>) executeReturnValue).Data;
+            if (!ifDetails.If)
+            {
+                output.WriteLines(ifDetails.Message);
+                return false;
+            }
+            return true;
+        }
+
+        private static void WriteFiles(ReturnValue executeReturnValue)
+        {
+            var writeFilesDetails = ((ReturnValue<WriteFilesDetails>) executeReturnValue).Data;
+
+            foreach (var genFile in writeFilesDetails.GenFiles)
+            {
+                string filePath = Path.Combine(writeFilesDetails.DirPath, genFile.RelativeFilePath);
+                string dirPath = Path.GetDirectoryName(filePath);
+
+                Directory.CreateDirectory(dirPath);
+                File.WriteAllText(filePath, genFile.Text);
+            }
+        }
+
+        private void RunProcess(ReturnValue executeReturnValue)
+        {
+            var runProcessDetails = ((ReturnValue<RunProcessDetails>) executeReturnValue).Data;
+
+            executeReturnValue = _processRunner.Run(runProcessDetails);
+
+            if (executeReturnValue.IsSuccess)
+            {
+                runProcessDetails.SetOutput(executeReturnValue.Message);
             }
         }
 

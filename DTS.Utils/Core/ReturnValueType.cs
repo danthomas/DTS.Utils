@@ -8,6 +8,7 @@ namespace DTS.Utils.Core
         If,
         SelectOption,
         RunProcess,
-        WriteOutput
+        WriteOutput,
+        WriteFiles
     }
 }
