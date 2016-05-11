@@ -21,40 +21,31 @@ namespace DTS.Utils.Tests.Processes
         }
 
         [Test]
-        public void GetStopProcessConfirmation_SingleProcess()
+        [TestCase(1, "Stop 1 Process?", new[] { "No", "Yes" })]
+        [TestCase(5, "Stop 5 Processes?", new[] { "No", "Yes" })]
+        public void GetStopProcessConfirmation(int noProcesses, string message, string[] options)
         {
             var args = ProcessesUtilDotArgsBuilder.New.Build();
+
             var context = ProcessesUtilDotContextBuilder.New
-                .WithProcesses(new ProcessesUtil.IProcess[] { new Process() })
+                .WithProcesses(Enumerable.Range(1, noProcesses).Select(x => new Process()).ToArray())
                 .Build();
 
             var selectOptionDetails = _processesUtil.GetStopProcessConfirmation(args, ProcessesUtil.CommandType.Stop, context);
             
-            Assert.That(selectOptionDetails.Message, Is.EqualTo("Stop 1 Process?"));
-            Assert.That(selectOptionDetails.Options[0], Is.EqualTo("No"));
-            Assert.That(selectOptionDetails.Options[1], Is.EqualTo("Yes"));
-        }
+            Assert.That(selectOptionDetails.Message, Is.EqualTo(message));
+            Assert.That(selectOptionDetails.Options.Length, Is.EqualTo(options.Length));
 
-        [Test]
-        public void GetStopProcessConfirmation_MultipleProcesses()
-        {
-            var args = ProcessesUtilDotArgsBuilder.New.Build();
-            var context = ProcessesUtilDotContextBuilder.New
-                .WithProcesses(new ProcessesUtil.IProcess[] { new Process(), new Process() })
-                .Build();
-
-            var selectOptionDetails = _processesUtil.GetStopProcessConfirmation(args, ProcessesUtil.CommandType.Stop, context);
-            
-            Assert.That(selectOptionDetails.Message, Is.EqualTo("Stop 2 Processes?"));
-            Assert.That(selectOptionDetails.Options[0], Is.EqualTo("No"));
-            Assert.That(selectOptionDetails.Options[1], Is.EqualTo("Yes"));
+            for (var i = 0; i < options.Length; i++)
+            {
+                Assert.That(selectOptionDetails.Options[i], Is.EqualTo(options[i]));
+            }
         }
 
         class Process : ProcessesUtil.IProcess
         {
             public void Stop()
             {
-
             }
         }
     }

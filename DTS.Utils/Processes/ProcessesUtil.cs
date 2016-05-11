@@ -26,7 +26,7 @@ namespace DTS.Utils.Processes
             Command<Args, CommandType, Context>()
                 .Action(CommandType.Start, "Starts the process")
                 .Arg("p", x => x.FilePath, true)
-                .NoOp(StartProcess);
+                .RunProcess(StartProcess);
         }
 
         public IfDetails FindProcesses(Args args, CommandType commandType, Context context)
@@ -47,11 +47,13 @@ namespace DTS.Utils.Processes
             };
         }
 
-        public ReturnValue StartProcess(Args args, CommandType commandType, Context context)
+        public RunProcessDetails StartProcess(Args args, CommandType commandType, Context context)
         {
-            Process.Start(args.FilePath);
-
-            return ReturnValue.Ok();
+            return new RunProcessDetails
+            {
+                Args = "",
+                Exe = args.FilePath
+            };
         }
 
         public ReturnValue StopProcesses(Args args, CommandType commandType, Context context)
