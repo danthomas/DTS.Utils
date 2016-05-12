@@ -25,14 +25,14 @@ namespace DTS.Utils.Tests.WindowsServices
         public void StateStartStop(string line, string noServerArgs, string serverLine, string serverArgs)
         {
             string exe = "sc.exe";
-            RunProcessDetails runProcessDetails = null;
+            StartProcessAction StartProcessAction = null;
 
-            _processRunner.Run(Arg.Do<RunProcessDetails>(x => runProcessDetails = x));
+            _processRunner.Run(Arg.Do<StartProcessAction>(x => StartProcessAction = x));
 
             var returnValue = _windowsServiceUtil.Execute(line);
 
-            Assert.That(runProcessDetails.Exe, Is.EqualTo(exe));
-            Assert.That(runProcessDetails.Args, Is.EqualTo(noServerArgs));
+            Assert.That(StartProcessAction.Exe, Is.EqualTo(exe));
+            Assert.That(StartProcessAction.Args, Is.EqualTo(noServerArgs));
 
             returnValue = _windowsServiceUtil.Execute(serverLine);
             
@@ -40,8 +40,8 @@ namespace DTS.Utils.Tests.WindowsServices
             
             returnValue = _windowsServiceUtil.Execute(line);
             
-            Assert.That(runProcessDetails.Exe, Is.EqualTo(exe));
-            Assert.That(runProcessDetails.Args, Is.EqualTo(serverArgs));
+            Assert.That(StartProcessAction.Exe, Is.EqualTo(exe));
+            Assert.That(StartProcessAction.Args, Is.EqualTo(serverArgs));
         }
     }
 }

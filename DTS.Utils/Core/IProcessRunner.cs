@@ -5,28 +5,37 @@ namespace DTS.Utils.Core
 {
     public interface IProcessRunner
     {
-        ReturnValue Run(RunProcessDetails runProcessDetails);
+        ReturnValue Run(RunProcessAction runProcessAction);
     }
 
     public class ProcessRunner : IProcessRunner
     {
-        public ReturnValue Run(RunProcessDetails runProcessDetails)
+        public ReturnValue Run(RunProcessAction runProcessAction)
         {
+            bool readOutput = runProcessAction.Action != null;
+
             var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = runProcessDetails.Exe,
-                    Arguments = runProcessDetails.Args,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true
+                    FileName = runProcessAction.RunProcessDetails.Exe,
+                    Arguments = runProcessAction.RunProcessDetails.Args,
+                    UseShellExecute = !readOutput,
+                    RedirectStandardOutput = readOutput,
+                    CreateNoWindow = readOutput
                 }
             };
 
             proc.Start();
 
-            return ReturnValue.Ok(proc.StandardOutput.ReadToEnd());
+            if (readOutput)
+            {
+                return ReturnValue.Ok(proc.StandardOutput.ReadToEnd());
+            }
+            else
+            {
+                return ReturnValue.Ok();
+            }
         }
     }
 }

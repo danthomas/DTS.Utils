@@ -102,8 +102,8 @@ namespace DTS.Utils.Tests
     {
         public TestUtilBase() : base(null, null)
         {
-            Command<Command1Args, Action, Context>()
-                .Action(Action.Command1, "")
+            Command<Command1Args, commandType, Context>()
+                .commandType(commandType.Command1, "")
                 .Arg("s", x => x.String)
                 .Arg("b", x => x.Bool)
                 .Arg("i", x => x.Int32)
@@ -113,8 +113,8 @@ namespace DTS.Utils.Tests
                     return ReturnValue.Ok();
                 });
 
-            Command<Command2Args, Action, Context>()
-                .Action(Action.Command2, "")
+            Command<Command2Args, commandType, Context>()
+                .commandType(commandType.Command2, "")
                 .Arg("s", x => x.String, true)
                 .Arg("b", x => x.Bool, true)
                 .Arg("i", x => x.Int32)
@@ -129,7 +129,7 @@ namespace DTS.Utils.Tests
 
         public Command1Args Command1Args { get; set; }
 
-        public enum Action
+        public enum commandType
         {
             Command1,
             Command2

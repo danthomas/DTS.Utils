@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using DTS.Utils.Processes;
 using DTS.Utils.Processes.Builders;
 using NUnit.Framework;
@@ -28,7 +24,7 @@ namespace DTS.Utils.Tests.Processes
             var args = ProcessesUtilDotArgsBuilder.New.Build();
 
             var context = ProcessesUtilDotContextBuilder.New
-                .WithProcesses(Enumerable.Range(1, noProcesses).Select(x => new Process()).ToArray())
+                .WithProcesses(Enumerable.Range(1, noProcesses).Select(x => new Process()).Cast<IProcess>().ToArray())
                 .Build();
 
             var selectOptionDetails = _processesUtil.GetStopProcessConfirmation(args, ProcessesUtil.CommandType.Stop, context);
@@ -42,11 +38,42 @@ namespace DTS.Utils.Tests.Processes
             }
         }
 
-        class Process : ProcessesUtil.IProcess
+        [Test]
+        public void StartProcess()
+        {
+            var filePath = "FilePath";
+
+            var args = ProcessesUtilDotArgsBuilder.New
+                .WithFilePath(filePath)
+                .Build();
+
+           var startProcessDetails = _processesUtil.StartProcess(args, ProcessesUtil.CommandType.Start, null);
+
+            Assert.That(startProcessDetails.Exe, Is.EqualTo(filePath));
+        }
+
+        [Test]
+        public void StopProcesses()
+        {
+            var filePath = "FilePath";
+
+            var args = ProcessesUtilDotArgsBuilder.New
+                .WithFilePath(filePath)
+                .Build();
+
+           var startProcessDetails = _processesUtil.StartProcess(args, ProcessesUtil.CommandType.Start, null);
+
+            Assert.That(startProcessDetails.Exe, Is.EqualTo(filePath));
+        }
+
+
+        class Process : IProcess
         {
             public void Stop()
             {
             }
+
+            public string Name { get; set; }
         }
     }
 }

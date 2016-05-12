@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using DTS.Utils.Core;
 using DTS.Utils.Details;
@@ -14,13 +13,15 @@ namespace DTS.Utils.Processes
             Command<Args, CommandType, Context>()
                 .Action(CommandType.List, "Lists the running processes")
                 .Arg("n", x => x.Name)
+                .GetProcesses(GetProcessesLike)
                 .WriteOutput(ListProcesses);
 
             Command<Args, CommandType, Context>()
                 .Action(CommandType.Stop, "Stops the process")
                 .Arg("n", x => x.Name)
-                .If(FindProcesses)
-                .SelectOption(GetStopProcessConfirmation)
+                .GetProcesses(GetProcessesEqual)
+                .If(AnyProcesses)
+                .IfSelectOption(GetStopProcessConfirmation)
                 .NoOp(StopProcesses);
 
             Command<Args, CommandType, Context>()
@@ -29,21 +30,28 @@ namespace DTS.Utils.Processes
                 .RunProcess(StartProcess);
         }
 
-        public IfDetails FindProcesses(Args args, CommandType commandType, Context context)
+        private void GetProcessesLike(IProcess[] processes, Args args, Context context)
         {
-            //ToDo: move this out to UtilRunner
-            context.Processes = Process.GetProcesses().Where(x => x.ProcessName.ToLower().Contains(args.Name.ToLower())).Select(x => new ProcessWrapper(x)).ToArray();
+            context.Processes = processes.Where(x => String.IsNullOrWhiteSpace(args.Name) || x.Name.ToLower().Contains(args.Name.ToLower())).ToArray();
+        }
 
+        private void GetProcessesEqual(IProcess[] processes, Args args, Context context)
+        {
+            context.Processes = processes.Where(x => String.IsNullOrWhiteSpace(args.Name) || x.Name.ToLower() == args.Name.ToLower()).ToArray();
+        }
+
+        public IfDetails AnyProcesses(Args args, CommandType commandType, Context context)
+        {
             return new IfDetails { If = context.Processes.Length > 0, Message = "No processed found" };
         }
 
-        public SelectOptionAction GetStopProcessConfirmation(Args args, CommandType commandType, Context context)
+        public IfSelectOptionAction GetStopProcessConfirmation(Args args, CommandType commandType, Context context)
         {
-            return new SelectOptionAction
+            return new IfSelectOptionAction
             {
                 Message = $"Stop {context.Processes.Length} {(context.Processes.Length == 1 ? "Process" : "Processes")}?",
                 Options = new[] { "No", "Yes" },
-                OptionSelected = x => { context.StopConfirmed = x == "Yes"; }
+                Option = "Yes"
             };
         }
 
@@ -58,12 +66,9 @@ namespace DTS.Utils.Processes
 
         public ReturnValue StopProcesses(Args args, CommandType commandType, Context context)
         {
-            if (context.StopConfirmed)
+            foreach (var process in context.Processes.Where(x => x.Name.ToLower() == args.Name.ToLower()))
             {
-                foreach (var process in context.Processes)
-                {
-                    process.Stop();
-                }
+                process.Stop();
             }
 
             return ReturnValue.Ok();
@@ -71,9 +76,8 @@ namespace DTS.Utils.Processes
 
         public IEnumerable<string> ListProcesses(Args args, CommandType commandType, Context context)
         {
-            return Process.GetProcesses()
-                .Select(x => x.ProcessName)
-                .Where(x => String.IsNullOrWhiteSpace(args.Name) || x.ToLower().Contains(args.Name.ToLower()));
+            return context.Processes
+                .Select(x => x.Name);
         }
 
         public enum CommandType
@@ -92,27 +96,6 @@ namespace DTS.Utils.Processes
         public class Context
         {
             public IProcess[] Processes { get; set; }
-            public bool StopConfirmed { get; set; }
-        }
-
-        public interface IProcess
-        {
-            void Stop();
-        }
-
-        public class ProcessWrapper : IProcess
-        {
-            public Process Process { get; set; }
-
-            public ProcessWrapper(Process process)
-            {
-                Process = process;
-            }
-
-            public void Stop()
-            {
-                Process.Kill();
-            }
         }
     }
 }

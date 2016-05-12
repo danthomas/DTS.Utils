@@ -10,6 +10,8 @@ namespace DTS.Utils.Core
         RunProcess,
         WriteOutput,
         WriteFiles,
-        LoadAssembly
+        LoadAssembly,
+        GetProcesses,
+        IfSelectOption
     }
 }

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using DTS.Utils.Core;
 using DTS.Utils.Details;
+using DTS.Utils.Processes;
 using DTS.Utils.Runner;
 
 namespace DTS.Utils
@@ -79,14 +81,20 @@ namespace DTS.Utils
                                 case ReturnValueType.If:
                                     runActions = If(output, executeReturnValue);
                                     break;
-                                case ReturnValueType.SelectOption:
+                                case ReturnValueType.IfSelectOption:
                                     SelectOption(input, output, executeReturnValue);
+                                    break;
+                                case ReturnValueType.SelectOption:
+                                    runActions = IfSelectOption(input, output, executeReturnValue);
                                     break;
                                 case ReturnValueType.WriteOutput:
                                     WriteOutput(output, executeReturnValue);
                                     break;
                                 case ReturnValueType.LoadAssembly:
                                     runActions = LoadAssembly(executeReturnValue);
+                                    break;
+                                case ReturnValueType.GetProcesses:
+                                    GetProcesses(executeReturnValue);
                                     break;
                                 default:
                                     output.WriteReturnValue(executeReturnValue);
@@ -106,9 +114,16 @@ namespace DTS.Utils
             }
         }
 
-        private bool LoadAssembly(ReturnValue executeReturnValue)
+        private void GetProcesses(ReturnValue returnValue)
         {
-            var loadAssemblyAction = ((ReturnValue<LoadAssemblyAction>)executeReturnValue).Data;
+            var getProcessesAction = ((ReturnValue<GetProcessesAction>)returnValue).Data;
+
+            getProcessesAction.Action(Process.GetProcesses().Select(x => new ProcessWrapper(x)).Cast<IProcess>().ToArray());
+        }
+
+        private bool LoadAssembly(ReturnValue returnValue)
+        {
+            var loadAssemblyAction = ((ReturnValue<LoadAssemblyAction>)returnValue).Data;
             if (File.Exists(loadAssemblyAction.FilePath))
             {
                 try
@@ -139,6 +154,15 @@ namespace DTS.Utils
             int response = input.ReadLine<int>();
             selectOptionDetails.OptionSelected(selectOptionDetails.Options[response]);
         }
+        
+        private static bool IfSelectOption(IInput input, IOutput output, ReturnValue executeReturnValue)
+        {
+            var ifSelectOptionAction = ((ReturnValue<IfSelectOptionAction>)executeReturnValue).Data;
+            output.WriteLines(ifSelectOptionAction.Message);
+            output.WriteLines(ifSelectOptionAction.Options.Select((x, i) => $"{i}: {x}").ToArray());
+            int response = input.ReadLine<int>();
+            return ifSelectOptionAction.Options[response] == ifSelectOptionAction.Option;
+        }
 
         private static bool If(IOutput output, ReturnValue executeReturnValue)
         {
@@ -167,13 +191,13 @@ namespace DTS.Utils
 
         private void RunProcess(ReturnValue executeReturnValue)
         {
-            var runProcessDetails = ((ReturnValue<RunProcessDetails>) executeReturnValue).Data;
+            var runProcessAction = ((ReturnValue<RunProcessAction>) executeReturnValue).Data;
 
-            executeReturnValue = _processRunner.Run(runProcessDetails);
+            executeReturnValue = _processRunner.Run(runProcessAction);
 
             if (executeReturnValue.IsSuccess)
             {
-                runProcessDetails.SetOutput(executeReturnValue.Message);
+                runProcessAction.Action?.Invoke(executeReturnValue.Message);
             }
         }
 

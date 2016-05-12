@@ -21,7 +21,7 @@ namespace DTS.Utils.WindowsServices
             Command<ListArgs, Action, Context>()
                 .Action(Action.List, "Lists the services filtered by name")
                 .Arg("n", x => x.Name)
-                .RunProcess(GetListRunProcessDetails)
+                .RunProcess(GetListRunProcessDetails, (s, y) => y.Output = s)
                 .WriteOutput(ProcessListOutput);
 
             Command<StateArgs, Action, Context>()
@@ -30,7 +30,7 @@ namespace DTS.Utils.WindowsServices
                 .Action(Action.Stop, "Stops the specified service")
                 .Arg("n", x => x.Service)
                 .Arg("s", x => x.Server)
-                .RunProcess(GetStateStopStartRunProcessDetails)
+                .RunProcess(GetStateStopStartRunProcessDetails, (s, y) => y.Output = s)
                 .NoOp(ProcessStateStopStartOutput);
         }
 
@@ -50,8 +50,7 @@ namespace DTS.Utils.WindowsServices
             return new RunProcessDetails
             {
                 Exe = "sc.exe",
-                Args = "query state= all",
-                SetOutput = x => context.Output = x
+                Args = "query state= all"
             };
         }
 
@@ -74,8 +73,7 @@ namespace DTS.Utils.WindowsServices
             return new RunProcessDetails
             {
                 Exe = "sc.exe",
-                Args = GetArgs(stateArgs, action),
-                SetOutput = x => context.Output = x
+                Args = GetArgs(stateArgs, action)
             };
         }
 

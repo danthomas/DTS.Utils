@@ -32,7 +32,7 @@ namespace DTS.Utils.Nuget
                 .NoOp(SetSessionArgs);
 
             //Command<StateArgs, Actions>()
-            //    .Action(Actions.State, "Gets the state of a Solution")
+            //    .commandType(Actions.State, "Gets the state of a Solution")
             //    .Arg("n", x => x.Server)
             //    .NoOp(SetServer);
         }
