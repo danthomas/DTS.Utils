@@ -203,6 +203,18 @@ namespace DTS.Utils.Core
             return this;
         }
 
+        public Command<TA, TC, TX> IfThen(Func<TX, bool> func, Func<Command<TA, TC, TX>, ICommand> action)
+        {
+            Func<TX, IfThenDetails> ifThenFunc = context => new IfThenDetails
+            {
+                If = func(context),
+                Command = action(new Command<TA, TC, TX>())
+            };
+
+            AddFunc(ifThenFunc, ReturnValueType.IfThen);
+            return this;
+        }
+
         public Command<TA, TC, TX> If(Func<TX, IfDetails> func)
         {
             //_funcs.Add((t, c, x) => ReturnValue<IfDetails>.Ok(getIfDetails(t, c, x), ReturnValueType.If));

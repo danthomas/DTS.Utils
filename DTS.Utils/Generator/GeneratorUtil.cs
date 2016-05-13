@@ -1,11 +1,9 @@
-using System.IO;
 using System.Reflection;
 using DTS.Utils.Core;
 using DTS.Utils.Details;
 using DTS.Utils.TypeDefs;
-using MPD.V2.Utils.Cli.BuilderGenerate;
 
-namespace DTS.Utils.BuilderGenerate
+namespace DTS.Utils.Generator
 {
     public class GeneratorUtil : UtilBase
     {
@@ -24,7 +22,18 @@ namespace DTS.Utils.BuilderGenerate
                 .Arg("o", a => a.OutputDirPath, true)
                 .Arg("c", a => a.ClearOutputDir)
                 .LoadAssembly(c => c.Args.AssemblyFilePath, (a, c) => c.Assembly = a)
+                .IfThen(ClearDirectory, command => command.NoOp(Tester))
                 .WriteFiles(GenFiles);
+        }
+
+        private ReturnValue Tester(Context arg)
+        {
+            return ReturnValue.Ok("Tester");
+        }
+
+        private bool ClearDirectory(Context context)
+        {
+            return context.Args.ClearOutputDir;
         }
 
         private WriteFilesAction GenFiles(Context context)

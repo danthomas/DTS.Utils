@@ -12,6 +12,7 @@ namespace DTS.Utils.Core
         WriteFiles,
         LoadAssembly,
         GetProcesses,
-        IfSelectOption
+        IfSelectOption,
+        IfThen
     }
 }

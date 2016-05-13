@@ -81,6 +81,9 @@ namespace DTS.Utils
                                 case ReturnValueType.If:
                                     runActions = If(output, executeReturnValue);
                                     break;
+                                case ReturnValueType.IfThen:
+                                    IfThen(output, executeReturnValue);
+                                    break;
                                 case ReturnValueType.IfSelectOption:
                                     SelectOption(input, output, executeReturnValue);
                                     break;
@@ -173,6 +176,15 @@ namespace DTS.Utils
                 return false;
             }
             return true;
+        }
+
+        private static void IfThen(IOutput output, ReturnValue executeReturnValue)
+        {
+            var ifThenDetails = ((ReturnValue<IfThenDetails>) executeReturnValue).Data;
+            if (ifThenDetails.If)
+            {
+                var v = ifThenDetails.Command;
+            }
         }
 
         private static void WriteFiles(ReturnValue executeReturnValue)

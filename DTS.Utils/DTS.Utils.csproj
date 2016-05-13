@@ -45,8 +45,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BuilderGenerate\BuilderGenerator.cs" />
-    <Compile Include="BuilderGenerate\GeneratorUtil.cs" />
+    <Compile Include="Generator\BuilderGenerator.cs" />
+    <Compile Include="Generator\GeneratorUtil.cs" />
     <Compile Include="Core\Context.cs" />
     <Compile Include="Core\EmptyContext.cs" />
     <Compile Include="Core\GenFile.cs" />

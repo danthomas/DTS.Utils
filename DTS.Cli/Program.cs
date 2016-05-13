@@ -1,5 +1,6 @@
 ﻿using DTS.Utils;
 using DTS.Utils.Core;
+using DTS.Utils.Generator;
 
 namespace DTS.Cli
 {
@@ -15,7 +16,7 @@ namespace DTS.Cli
                 .Util<Utils.WindowsServices.WindowsServiceUtil>()
                 .Util<Utils.Processes.ProcessesUtil>()
                 .Util<Utils.Nuget.NugetUtil>()
-                .Util<Utils.BuilderGenerate.GeneratorUtil>()
+                .Util<GeneratorUtil>()
                 .Run(inputOutput, inputOutput);
         }
     }

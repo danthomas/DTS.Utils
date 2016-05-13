@@ -6,7 +6,7 @@ using System.Text;
 using DTS.Utils.Core;
 using DTS.Utils.TypeDefs;
 
-namespace MPD.V2.Utils.Cli.BuilderGenerate
+namespace DTS.Utils.Generator
 {
     class BuilderGenerator
     {
