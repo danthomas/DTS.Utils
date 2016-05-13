@@ -19,8 +19,6 @@ namespace DTS.Utils.Core
         private readonly string[] _falsy;
         private int _index;
 
-        private TA _args;
-        private TC _commandType;
         private TX _context;
 
         internal Command()
@@ -98,6 +96,7 @@ namespace DTS.Utils.Core
         public ReturnValue Init(string[] args)
         {
             TA a = new TA();
+            TC commandType = (TC)Enum.Parse(typeof(TC), args[0], true);
 
             _argDefs.ForEach(x =>
             {
@@ -164,7 +163,7 @@ namespace DTS.Utils.Core
             _context = new TX
             {
                 Args = a,
-                CommandType = (TC)Enum.Parse(typeof(TC), args[0], true)
+                CommandType = commandType
             };
 
             _index = 0;

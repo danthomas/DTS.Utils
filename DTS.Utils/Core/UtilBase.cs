@@ -4,6 +4,21 @@ using System.Linq;
 
 namespace DTS.Utils.Core
 {
+    public abstract class UtilBase<TA, TC, TX> : UtilBase
+            where TA : class, new()
+            where TX : Context<TA, TC>, new()
+    {
+        protected UtilBase(string name, string description) 
+            : base(name, description)
+        {
+        }
+
+        public Command<TA, TC, TX> Command()
+        {
+            return Command<TA, TC, TX>();
+        }
+    }
+
     public abstract class UtilBase
     {
         protected readonly List<ICommand> Commands;
@@ -39,7 +54,8 @@ namespace DTS.Utils.Core
         public string Description { get; set; }
 
         protected Command<A, C, X> Command<A, C, X>()
-            where A : class, new() where X : Context<A, C>, new()
+            where A : class, new() 
+            where X : Context<A, C>, new()
         {
             Command<A, C, X> command = new Command<A, C, X>();
 

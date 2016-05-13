@@ -1,3 +1,4 @@
+using System.IO;
 using System.Reflection;
 using DTS.Utils.Core;
 using DTS.Utils.Details;
@@ -21,6 +22,7 @@ namespace DTS.Utils.BuilderGenerate
                 .Action(CommandType.Ver, "Generate Verifiers")
                 .Arg("a", a => a.AssemblyFilePath, true)
                 .Arg("o", a => a.OutputDirPath, true)
+                .Arg("c", a => a.ClearOutputDir)
                 .LoadAssembly(c => c.Args.AssemblyFilePath, (a, c) => c.Assembly = a)
                 .WriteFiles(GenFiles);
         }
@@ -28,6 +30,10 @@ namespace DTS.Utils.BuilderGenerate
         private WriteFilesAction GenFiles(Context context)
         {
             GenFile[] genFiles = null;
+
+            if (context.Args.ClearOutputDir)
+            {
+            }
 
             if (context.CommandType == CommandType.Bld)
             {
@@ -52,6 +58,7 @@ namespace DTS.Utils.BuilderGenerate
         {
             public string AssemblyFilePath { get; set; }
             public string OutputDirPath { get; set; }
+            public bool ClearOutputDir { get; set; }
         }
 
         //private void BuildBuilders(Assembly assembly)

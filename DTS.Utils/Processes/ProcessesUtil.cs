@@ -6,17 +6,17 @@ using DTS.Utils.Details;
 
 namespace DTS.Utils.Processes
 {
-    public class ProcessesUtil : UtilBase
+    public class ProcessesUtil : UtilBase<ProcessesUtil.Args, ProcessesUtil.CommandType, ProcessesUtil.Context>
     {
         public ProcessesUtil() : base("proc", "Processes Utility")
         {
-            Command<Args, CommandType, Context>()
+            Command()
                 .Action(CommandType.List, "Lists the running processes")
                 .Arg("n", x => x.Name)
                 .GetProcesses(GetProcessesLike)
                 .WriteOutput(ListProcesses);
 
-            Command<Args, CommandType, Context>()
+            Command()
                 .Action(CommandType.Stop, "Stops the process")
                 .Arg("n", x => x.Name)
                 .GetProcesses(GetProcessesEqual)
@@ -24,7 +24,7 @@ namespace DTS.Utils.Processes
                 .IfSelectOption(GetStopProcessConfirmation)
                 .NoOp(StopProcesses);
 
-            Command<Args, CommandType, Context>()
+            Command()
                 .Action(CommandType.Start, "Starts the process")
                 .Arg("p", x => x.FilePath, true)
                 .RunProcess(StartProcess);
@@ -42,7 +42,11 @@ namespace DTS.Utils.Processes
 
         public IfDetails AnyProcesses(Context context)
         {
-            return new IfDetails { If = context.Processes.Length > 0, Message = "No processed found" };
+            return new IfDetails
+            {
+                If = context.Processes.Length > 0,
+                Message = "No processed found"
+            };
         }
 
         public IfSelectOptionAction GetStopProcessConfirmation(Context context)
