@@ -10,10 +10,10 @@ namespace DTS.Utils.Core
 {
     public class Command<TA, TC, TX> : ICommand
         where TA : class, new()
-        where TX : class, new()
+        where TX : Context<TA, TC>, new()
     {
         private readonly List<ArgDef> _argDefs;
-        private readonly List<Func<TA, TC, TX, ReturnValue>> _funcs;
+        private readonly List<Func<TX, ReturnValue>> _funcs;
         private readonly string _argChar;
         private readonly string[] _truthy;
         private readonly string[] _falsy;
@@ -25,7 +25,7 @@ namespace DTS.Utils.Core
 
         internal Command()
         {
-            _funcs = new List<Func<TA, TC, TX, ReturnValue>>();
+            _funcs = new List<Func<TX, ReturnValue>>();
             _argChar = "/";
             _truthy = new[] { "true", "t", "1" };
             _falsy = new[] { "false", "f", "0" };
@@ -97,8 +97,6 @@ namespace DTS.Utils.Core
 
         public ReturnValue Init(string[] args)
         {
-            TC commandType = (TC)Enum.Parse(typeof(TC), args[0], true);
-
             TA a = new TA();
 
             _argDefs.ForEach(x =>
@@ -163,11 +161,11 @@ namespace DTS.Utils.Core
                     $@"Invalid arguments : {String.Join(", ", invalidArgs.Select(x => $"{x.Name} = {x.Value}"))}");
             }
 
-            _context = new TX();
-
-            _args = a;
-
-            _commandType = commandType;
+            _context = new TX
+            {
+                Args = a,
+                CommandType = (TC)Enum.Parse(typeof(TC), args[0], true)
+            };
 
             _index = 0;
 
@@ -178,7 +176,7 @@ namespace DTS.Utils.Core
         {
             if (_index < _funcs.Count)
             {
-                return _funcs[_index++](_args, _commandType, _context);
+                return _funcs[_index++](_context);
             }
 
             //ToDo   dont return an error
@@ -200,35 +198,35 @@ namespace DTS.Utils.Core
             return ret;
         }
 
-        public Command<TA, TC, TX> NoOp(Func<TA, TC, TX, ReturnValue> func)
+        public Command<TA, TC, TX> NoOp(Func<TX, ReturnValue> func)
         {
             _funcs.Add(func);
             return this;
         }
 
-        public Command<TA, TC, TX> If(Func<TA, TC, TX, IfDetails> func)
+        public Command<TA, TC, TX> If(Func<TX, IfDetails> func)
         {
             //_funcs.Add((t, c, x) => ReturnValue<IfDetails>.Ok(getIfDetails(t, c, x), ReturnValueType.If));
             AddFunc(func, ReturnValueType.If);
             return this;
         }
 
-        public Command<TA, TC, TX> GetProcesses(Action<IProcess[], TA, TX> action = null)
+        public Command<TA, TC, TX> GetProcesses(Action<IProcess[], TX> action = null)
         {
             //ToDo: pass expression to set propery
-            _funcs.Add((t, c, x) => ReturnValue<GetProcessesAction>.Ok(new GetProcessesAction
+            _funcs.Add(c => ReturnValue<GetProcessesAction>.Ok(new GetProcessesAction
             {
-                Action = a =>
+                Action = processes =>
                 {
-                    action?.Invoke(a, t, x);
+                    action?.Invoke(processes, c);
                 }
             }, ReturnValueType.GetProcesses));
             return this;
         }
 
-        public Command<TA, TC, TX> RunProcess(Func<TA, TC, TX, RunProcessDetails> getRunProcessDetails, Action<string, TX> action = null)
+        public Command<TA, TC, TX> RunProcess(Func<TX, RunProcessDetails> getRunProcessDetails, Action<string, TX> action = null)
         {
-            _funcs.Add((t, c, x) =>
+            _funcs.Add(c =>
             {
                 Action<string> action1 = null;
                 
@@ -236,13 +234,13 @@ namespace DTS.Utils.Core
                 {
                     action1 = a =>
                     {
-                        action.Invoke(a, x);
+                        action.Invoke(a, c);
                     };
                 }
 
                 return ReturnValue<RunProcessAction>.Ok(new RunProcessAction
                 {
-                    RunProcessDetails = getRunProcessDetails(t, c, x),
+                    RunProcessDetails = getRunProcessDetails(c),
                     Action = action1
                 }, ReturnValueType.RunProcess);
             }
@@ -251,46 +249,46 @@ namespace DTS.Utils.Core
             return this;
         }
 
-        public Command<TA, TC, TX> LoadAssembly(Func<TA, TC, TX, string> func, Action<Assembly, TX> action)
+        public Command<TA, TC, TX> LoadAssembly(Func<TX, string> func, Action<Assembly, TX> action)
         {
-            _funcs.Add((t, c, x) => ReturnValue<LoadAssemblyAction>.Ok(new LoadAssemblyAction
+            _funcs.Add(c => ReturnValue<LoadAssemblyAction>.Ok(new LoadAssemblyAction
             {
-                FilePath = func(t, c, x),
-                Action = a => action(a, x)
+                FilePath = func(c),
+                Action = a => action(a, c)
             }, ReturnValueType.LoadAssembly));
             return this;
         }
 
-        public Command<TA, TC, TX> IfSelectOption(Func<TA, TC, TX, IfSelectOptionAction> func)
+        public Command<TA, TC, TX> IfSelectOption(Func<TX, IfSelectOptionAction> func)
         {
-            _funcs.Add((t, c, x) => ReturnValue<IfSelectOptionAction>.Ok(func(t, c, x), ReturnValueType.SelectOption));
+            _funcs.Add(c => ReturnValue<IfSelectOptionAction>.Ok(func(c), ReturnValueType.SelectOption));
             //AddFunc(func, ReturnValueType.IfSelectOption);
             return this;
         }
 
-        public Command<TA, TC, TX> SelectOption(Func<TA, TC, TX, SelectOptionAction> func)
+        public Command<TA, TC, TX> SelectOption(Func<TX, SelectOptionAction> func)
         {
             //_funcs.Add((t, c, x) => ReturnValue<SelectOptionAction>.Ok(func(t, c, x), ReturnValueType.SelectOption));
             AddFunc(func, ReturnValueType.SelectOption);
             return this;
         }
 
-        public Command<TA, TC, TX> WriteOutput(Func<TA, TC, TX, IEnumerable<string>> func)
+        public Command<TA, TC, TX> WriteOutput(Func<TX, IEnumerable<string>> func)
         {
             //_funcs.Add((t, c, x) => ReturnValue<IEnumerable<string>>.Ok(func(t, c, x).ToArray(), ReturnValueType.WriteOutput));
             AddFunc(func, ReturnValueType.WriteOutput);
             return this;
         }
 
-        public Command<TA, TC, TX> WriteFiles(Func<TA, TC, TX, WriteFilesAction> func)
+        public Command<TA, TC, TX> WriteFiles(Func<TX, WriteFilesAction> func)
         {
             AddFunc(func, ReturnValueType.WriteFiles);
             return this;
         }
 
-        private void AddFunc<T>(Func<TA, TC, TX, T> func, ReturnValueType returnValueType)
+        private void AddFunc<T>(Func<TX, T> func, ReturnValueType returnValueType)
         {
-            _funcs.Add((t, c, x) => ReturnValue<T>.Ok(func(t, c, x), returnValueType));
+            _funcs.Add(c => ReturnValue<T>.Ok(func(c), returnValueType));
         }
 
         private class ArgDef

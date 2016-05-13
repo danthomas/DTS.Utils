@@ -8,11 +8,11 @@ namespace DTS.Utils.Runner
     {
         public RunnerUtil() : base("root", "")
         {
-            Command<EmptyArgs, CommandType, Context>()
+            Command<EmptyArgs, CommandType, EmptyContext<CommandType>>()
               .Action(CommandType.Cls, "Clears the console")
               .NoOp(Clear);
 
-            Command<EmptyArgs, CommandType, Context>()
+            Command<EmptyArgs, CommandType, EmptyContext<CommandType>>()
               .Action(CommandType.Exit, "Exit the application")
               .NoOp(Exit);
 
@@ -22,21 +22,21 @@ namespace DTS.Utils.Runner
               .NoOp(SetCurrentWorkingDirectory);
         }
 
-        private ReturnValue Clear(EmptyArgs arg1, CommandType arg2, Context context)
+        private ReturnValue Clear(EmptyContext<CommandType> context)
         {
             return ReturnValue.Ok(ReturnValueType.Clear);
         }
 
-        private ReturnValue Exit(EmptyArgs arg1, CommandType arg2, Context context)
+        private ReturnValue Exit(EmptyContext<CommandType> context)
         {
             return ReturnValue.Ok(ReturnValueType.ExitApplication);
         }
 
-        private ReturnValue SetCurrentWorkingDirectory(CurrArgs args, CommandType commandType, Context context)
+        private ReturnValue SetCurrentWorkingDirectory(Context context)
         {
             try
             {
-                Directory.SetCurrentDirectory(args.DirectoryPath);
+                Directory.SetCurrentDirectory(context.Args.DirectoryPath);
 
                 return ReturnValue.Ok($"Current Directory set to {Directory.GetCurrentDirectory()}");
             }
@@ -46,10 +46,9 @@ namespace DTS.Utils.Runner
             }
         }
 
-        public class Context
+        private class Context : Context<CurrArgs, CommandType>
         {
         }
-
 
         internal enum CommandType
         {
@@ -62,11 +61,6 @@ namespace DTS.Utils.Runner
         public class CurrArgs
         {
             public string DirectoryPath { get; set; }
-        }
-
-
-        internal class Args
-        {
         }
     }
 }

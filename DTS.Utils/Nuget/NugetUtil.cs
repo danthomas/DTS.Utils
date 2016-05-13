@@ -22,7 +22,7 @@ namespace DTS.Utils.Nuget
                 _session = new Session();
             }
 
-            Command<SessionArgs, Actions, Context>()
+            Command<SessionArgs, Actions, SessionContext>()
                 .Action(Actions.Ses, "Sets the current _session args")
                 .Arg("s", x => x.SolutionFile)
                 .Arg("r", x => x.ReadSessionArgs)
@@ -37,34 +37,34 @@ namespace DTS.Utils.Nuget
             //    .NoOp(SetServer);
         }
 
-        public class Context
+        private class SessionContext : Core.Context<SessionArgs, Actions>
         {
         }
 
-        private ReturnValue SetSessionArgs(SessionArgs args, Actions action, Context context)
+        private ReturnValue SetSessionArgs(SessionContext context)
         {
-            if (args.ReadSessionArgs)
+            if (context.Args.ReadSessionArgs)
             {
                 _session = ReadSession();
             }
 
-            if (!String.IsNullOrWhiteSpace(args.SolutionFile))
+            if (!String.IsNullOrWhiteSpace(context.Args.SolutionFile))
             {
-                _session.SolutionFile = args.SolutionFile;
+                _session.SolutionFile = context.Args.SolutionFile;
             }
-            else if (args.SolutionFile == "null")
+            else if (context.Args.SolutionFile == "null")
             {
                 _session = null;
             }
 
-            if (args.WriteSessionArgs)
+            if (context.Args.WriteSessionArgs)
             {
                 File.WriteAllText(_filePath, JsonConvert.SerializeObject(_session));
             }
 
             List<string> lines = new List<string>();
 
-            if (args.ListSessionArgs)
+            if (context.Args.ListSessionArgs)
             {
                 lines.Add("Solution File: " + _session.SolutionFile);
             }

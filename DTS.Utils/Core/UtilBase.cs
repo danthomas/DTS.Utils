@@ -15,12 +15,12 @@ namespace DTS.Utils.Core
 
             Commands = new List<ICommand>();
 
-            Command<EmptyArgs, BaseCommandType, EmptyContext>()
-              .Action(BaseCommandType.Help, "Details the available utils")
-              .NoOp(ShowHelp);
+            Command<EmptyArgs, BaseCommandType, EmptyContext<BaseCommandType>>()
+            .Action(BaseCommandType.Help, "Details the available utils")
+            .NoOp(ShowHelp);
         }
 
-        private ReturnValue ShowHelp(EmptyArgs args, BaseCommandType baseCommandType, EmptyContext baseContext)
+        private ReturnValue ShowHelp(EmptyContext<BaseCommandType> baseContext)
         {
             List<string> lines = new List<string>(new[] { $"{Name} commands:" });
 
@@ -39,9 +39,7 @@ namespace DTS.Utils.Core
         public string Description { get; set; }
 
         protected Command<A, C, X> Command<A, C, X>()
-            where A : class, new()
-            where C : struct
-            where X : class, new()
+            where A : class, new() where X : Context<A, C>, new()
         {
             Command<A, C, X> command = new Command<A, C, X>();
 

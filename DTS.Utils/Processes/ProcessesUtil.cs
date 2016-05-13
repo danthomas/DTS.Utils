@@ -30,22 +30,22 @@ namespace DTS.Utils.Processes
                 .RunProcess(StartProcess);
         }
 
-        private void GetProcessesLike(IProcess[] processes, Args args, Context context)
+        private void GetProcessesLike(IProcess[] processes, Context context)
         {
-            context.Processes = processes.Where(x => String.IsNullOrWhiteSpace(args.Name) || x.Name.ToLower().Contains(args.Name.ToLower())).ToArray();
+            context.Processes = processes.Where(x => String.IsNullOrWhiteSpace(context.Args.Name) || x.Name.ToLower().Contains(context.Args.Name.ToLower())).ToArray();
         }
 
-        private void GetProcessesEqual(IProcess[] processes, Args args, Context context)
+        private void GetProcessesEqual(IProcess[] processes, Context context)
         {
-            context.Processes = processes.Where(x => String.IsNullOrWhiteSpace(args.Name) || x.Name.ToLower() == args.Name.ToLower()).ToArray();
+            context.Processes = processes.Where(x => String.IsNullOrWhiteSpace(context.Args.Name) || x.Name.ToLower() == context.Args.Name.ToLower()).ToArray();
         }
 
-        public IfDetails AnyProcesses(Args args, CommandType commandType, Context context)
+        public IfDetails AnyProcesses(Context context)
         {
             return new IfDetails { If = context.Processes.Length > 0, Message = "No processed found" };
         }
 
-        public IfSelectOptionAction GetStopProcessConfirmation(Args args, CommandType commandType, Context context)
+        public IfSelectOptionAction GetStopProcessConfirmation(Context context)
         {
             return new IfSelectOptionAction
             {
@@ -55,18 +55,18 @@ namespace DTS.Utils.Processes
             };
         }
 
-        public RunProcessDetails StartProcess(Args args, CommandType commandType, Context context)
+        public RunProcessDetails StartProcess(Context context)
         {
             return new RunProcessDetails
             {
                 Args = "",
-                Exe = args.FilePath
+                Exe = context.Args.FilePath
             };
         }
 
-        public ReturnValue StopProcesses(Args args, CommandType commandType, Context context)
+        public ReturnValue StopProcesses(Context context)
         {
-            foreach (var process in context.Processes.Where(x => x.Name.ToLower() == args.Name.ToLower()))
+            foreach (var process in context.Processes.Where(x => x.Name.ToLower() == context.Args.Name.ToLower()))
             {
                 process.Stop();
             }
@@ -74,7 +74,7 @@ namespace DTS.Utils.Processes
             return ReturnValue.Ok();
         }
 
-        public IEnumerable<string> ListProcesses(Args args, CommandType commandType, Context context)
+        public IEnumerable<string> ListProcesses(Context context)
         {
             return context.Processes
                 .Select(x => x.Name);
@@ -93,7 +93,7 @@ namespace DTS.Utils.Processes
             public string FilePath { get; set; }
         }
 
-        public class Context
+        public class Context : Core.Context<Args, CommandType>
         {
             public IProcess[] Processes { get; set; }
         }

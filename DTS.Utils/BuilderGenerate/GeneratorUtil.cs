@@ -21,23 +21,23 @@ namespace DTS.Utils.BuilderGenerate
                 .Action(CommandType.Ver, "Generate Verifiers")
                 .Arg("a", a => a.AssemblyFilePath, true)
                 .Arg("o", a => a.OutputDirPath, true)
-                .LoadAssembly((a, c, x) => a.AssemblyFilePath, (a, c) => c.Assembly = a)
+                .LoadAssembly(c => c.Args.AssemblyFilePath, (a, c) => c.Assembly = a)
                 .WriteFiles(GenFiles);
         }
 
-        private WriteFilesAction GenFiles(Args args, CommandType commandType, Context context)
+        private WriteFilesAction GenFiles(Context context)
         {
             GenFile[] genFiles = null;
 
-            if (commandType == CommandType.Bld)
+            if (context.CommandType == CommandType.Bld)
             {
                 genFiles = _builderGenerator.GenBuilders(context.Assembly).ToArray();
             }
 
-            return new WriteFilesAction {DirPath = args.OutputDirPath, GenFiles = genFiles};
+            return new WriteFilesAction {DirPath = context.Args.OutputDirPath, GenFiles = genFiles};
         }
 
-        internal class Context
+        internal class Context : Context<Args, CommandType>
         {
             public Assembly Assembly { get; set; }
         }

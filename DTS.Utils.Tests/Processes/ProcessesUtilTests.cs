@@ -27,7 +27,7 @@ namespace DTS.Utils.Tests.Processes
                 .WithProcesses(Enumerable.Range(1, noProcesses).Select(x => new Process()).Cast<IProcess>().ToArray())
                 .Build();
 
-            var selectOptionDetails = _processesUtil.GetStopProcessConfirmation(args, ProcessesUtil.CommandType.Stop, context);
+            var selectOptionDetails = _processesUtil.GetStopProcessConfirmation(context);
             
             Assert.That(selectOptionDetails.Message, Is.EqualTo(message));
             Assert.That(selectOptionDetails.Options.Length, Is.EqualTo(options.Length));
@@ -47,7 +47,7 @@ namespace DTS.Utils.Tests.Processes
                 .WithFilePath(filePath)
                 .Build();
 
-           var startProcessDetails = _processesUtil.StartProcess(args, ProcessesUtil.CommandType.Start, null);
+           var startProcessDetails = _processesUtil.StartProcess(null);
 
             Assert.That(startProcessDetails.Exe, Is.EqualTo(filePath));
         }
@@ -61,7 +61,7 @@ namespace DTS.Utils.Tests.Processes
                 .WithFilePath(filePath)
                 .Build();
 
-           var startProcessDetails = _processesUtil.StartProcess(args, ProcessesUtil.CommandType.Start, null);
+           var startProcessDetails = _processesUtil.StartProcess(null);
 
             Assert.That(startProcessDetails.Exe, Is.EqualTo(filePath));
         }

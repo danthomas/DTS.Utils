@@ -13,39 +13,34 @@ namespace DTS.Utils.WindowsServices
         public WindowsServiceUtil()
             : base("svc", "Windows Service NugetUtil")
         {
-            Command<SessionArgs, Action, Context>()
-                .Action(Action.Server, "Sets the server for the current session")
+            Command<SessionArgs, CommandType, SessionContext>()
+                .Action(CommandType.Server, "Sets the server for the current session")
                 .Arg("n", x => x.Server)
                 .NoOp(SetServer);
 
-            Command<ListArgs, Action, Context>()
-                .Action(Action.List, "Lists the services filtered by name")
+            Command<ListArgs, CommandType, ListContext>()
+                .Action(CommandType.List, "Lists the services filtered by name")
                 .Arg("n", x => x.Name)
                 .RunProcess(GetListRunProcessDetails, (s, y) => y.Output = s)
                 .WriteOutput(ProcessListOutput);
 
-            Command<StateArgs, Action, Context>()
-                .Action(Action.State, "Gets the action of the specified service")
-                .Action(Action.Start, "Starts the specified service")
-                .Action(Action.Stop, "Stops the specified service")
+            Command<StateArgs, CommandType, StateContext>()
+                .Action(CommandType.State, "Gets the CommandType of the specified service")
+                .Action(CommandType.Start, "Starts the specified service")
+                .Action(CommandType.Stop, "Stops the specified service")
                 .Arg("n", x => x.Service)
                 .Arg("s", x => x.Server)
                 .RunProcess(GetStateStopStartRunProcessDetails, (s, y) => y.Output = s)
                 .NoOp(ProcessStateStopStartOutput);
         }
 
-        public class Context
+        private ReturnValue SetServer(SessionContext context)
         {
-            public string Output { get; set; }
-        }
-
-        private ReturnValue SetServer(SessionArgs args, Action action, Context context)
-        {
-            _server = args.Server;
+            _server = context.Args.Server;
             return ReturnValue.Ok();
         }
 
-        private RunProcessDetails GetListRunProcessDetails(ListArgs listArgs, Action action, Context context)
+        private RunProcessDetails GetListRunProcessDetails(ListContext context)
         {
             return new RunProcessDetails
             {
@@ -54,12 +49,12 @@ namespace DTS.Utils.WindowsServices
             };
         }
 
-        private IEnumerable<string> ProcessListOutput(ListArgs listArgs, Action action, Context context)
+        private IEnumerable<string> ProcessListOutput(ListContext context)
         {
             var lines = context.Output.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(x => x.StartsWith("SERVICE_NAME: "))
                 .Select(x => x.Replace("SERVICE_NAME: ", ""))
-                .Where(x => String.IsNullOrWhiteSpace(listArgs.Name) || x.ToLower().Contains(listArgs.Name.ToLower())).ToList();
+                .Where(x => String.IsNullOrWhiteSpace(context.Args.Name) || x.ToLower().Contains(context.Args.Name.ToLower())).ToList();
 
             var count = lines.Count;
 
@@ -68,16 +63,16 @@ namespace DTS.Utils.WindowsServices
             return  lines;
         }
 
-        private RunProcessDetails GetStateStopStartRunProcessDetails(StateArgs stateArgs, Action action, Context context)
+        private RunProcessDetails GetStateStopStartRunProcessDetails(StateContext context)
         {
             return new RunProcessDetails
             {
                 Exe = "sc.exe",
-                Args = GetArgs(stateArgs, action)
+                Args = GetArgs(context.Args, context.CommandType)
             };
         }
 
-        private ReturnValue ProcessStateStopStartOutput(StateArgs stateArgs, Action action, Context context)
+        private ReturnValue ProcessStateStopStartOutput(StateContext context)
         {
             string state = context.Output.SplitAndTrim(Environment.NewLine)
                 .Where(x => x.StartsWith("STATE"))
@@ -86,15 +81,15 @@ namespace DTS.Utils.WindowsServices
 
             ReturnValue returnValue = ReturnValue.Ok();
 
-            if (action == Action.Start)
+            if (context.CommandType == CommandType.Start)
             {
                 returnValue = CheckOutputForErrors(context.Output, 1056);
             }
-            else if (action == Action.Stop)
+            else if (context.CommandType == CommandType.Stop)
             {
                 returnValue = CheckOutputForErrors(context.Output, 1062);
             }
-            else if (action == Action.State && state == null)
+            else if (context.CommandType == CommandType.State && state == null)
             {
                 returnValue = ReturnValue.Error(ErrorType.ServiceStateNotFound, "Failed to find the state");
             }
@@ -130,15 +125,29 @@ namespace DTS.Utils.WindowsServices
             return ReturnValue.Ok();
         }
 
-        private string GetArgs(StateArgs x, Action action)
+        private string GetArgs(StateArgs x, CommandType commandType)
         {
             string server = String.IsNullOrWhiteSpace(x.Server) ? _server : x.Server;
 
             string ret = String.IsNullOrWhiteSpace(server) ? "" : "//" + server + " ";
 
-            ret += $"{(action == Action.State ? "query" : action.ToString().ToLower())} {x.Service}";
+            ret += $"{(commandType == CommandType.State ? "query" : commandType.ToString().ToLower())} {x.Service}";
 
             return ret;
+        }
+
+        private class SessionContext : Context<SessionArgs, CommandType>
+        {
+        }
+
+        private class ListContext : Context<ListArgs, CommandType>
+        {
+            public string Output { get; set; }
+        }
+
+        private class StateContext : Context<StateArgs, CommandType>
+        {
+            public string Output { get; set; }
         }
 
         class ListArgs
@@ -157,7 +166,7 @@ namespace DTS.Utils.WindowsServices
             public string Service { get; set; }
         }
 
-        enum Action
+        enum CommandType
         {
             State,
             Stop,
